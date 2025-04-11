@@ -95,7 +95,7 @@ const TripList = () => {
   const [trips] = useState<TripCardProps[]>(mockTrips);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [busType, setBusType] = useState<string>("");
+  const [busType, setBusType] = useState<string>("all");
 
   // Filter trips based on search query, date and bus type
   const filteredTrips = trips.filter(trip => {
@@ -106,7 +106,7 @@ const TripList = () => {
     
     const matchesDate = !selectedDate || trip.date.toDateString() === selectedDate.toDateString();
     
-    const matchesBusType = !busType || trip.busType === busType;
+    const matchesBusType = busType === "all" || trip.busType === busType;
     
     return matchesSearch && matchesDate && matchesBusType;
   });
@@ -159,7 +159,7 @@ const TripList = () => {
               <SelectValue placeholder="Any Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any Type</SelectItem>
+              <SelectItem value="all">Any Type</SelectItem>
               <SelectItem value="Seater">Seater</SelectItem>
               <SelectItem value="Sleeper">Sleeper</SelectItem>
               <SelectItem value="Mixed">Mixed</SelectItem>
