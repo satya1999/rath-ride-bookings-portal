@@ -89,8 +89,6 @@ const featuredTrips = [
 ];
 
 const Index = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  
   return (
     <PageLayout>
       {/* Hero Section */}
@@ -116,47 +114,6 @@ const Index = () => {
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Search Box */}
-      <div className="relative -mt-12 max-w-xl mx-auto px-4">
-        <Card className="shadow-lg">
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center border rounded-md p-2">
-                <Search className="h-5 w-5 text-gray-400 mr-2" />
-                <Input 
-                  type="text" 
-                  placeholder="Search for destinations..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex items-center border rounded-md p-2">
-                  <Calendar className="h-5 w-5 text-gray-400 mr-2" />
-                  <Input 
-                    type="date"
-                    className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
-                  />
-                </div>
-                <div className="flex items-center border rounded-md p-2">
-                  <MapPin className="h-5 w-5 text-gray-400 mr-2" />
-                  <select className="form-select w-full border-0 focus:ring-0">
-                    <option>Select route</option>
-                    <option>Puri - Bhubaneswar</option>
-                    <option>Bhubaneswar - Konark</option>
-                    <option>Cuttack - Puri</option>
-                  </select>
-                </div>
-              </div>
-              
-              <Button className="w-full">Search Trips</Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
       
       {/* Features Section */}
