@@ -20,6 +20,7 @@ export interface TripCardProps {
   busType: "Seater" | "Sleeper" | "Mixed";
   imageUrl?: string;
   className?: string;
+  description?: string;
 }
 
 const TripCard = ({
@@ -34,7 +35,8 @@ const TripCard = ({
   totalSeats,
   busType,
   imageUrl = "https://source.unsplash.com/random/300x200/?bus",
-  className
+  className,
+  description
 }: TripCardProps) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
@@ -71,6 +73,10 @@ const TripCard = ({
         </div>
       </div>
       <CardContent className="pt-4">
+        {description && (
+          <p className="text-sm text-gray-600 mb-3">{description}</p>
+        )}
+        
         <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center text-sm">
             <Calendar className="h-4 w-4 mr-1 text-gray-500" />
