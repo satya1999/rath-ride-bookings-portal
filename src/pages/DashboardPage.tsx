@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CircleDollarSign, Ticket, BarChart3, Wallet, Calendar, Clock, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import BookingHistoryList from "@/components/dashboard/BookingHistoryList";
-import CommissionHistory from "@/components/dashboard/CommissionHistory";
+import BookingHistoryList, { BookingHistoryItem } from "@/components/dashboard/BookingHistoryList";
+import CommissionHistory, { CommissionHistoryItem } from "@/components/dashboard/CommissionHistory";
 import WithdrawalForm from "@/components/dashboard/WithdrawalForm";
 
 // This is just a placeholder for the MVP
@@ -30,7 +29,7 @@ const DashboardPage = () => {
         passengers: 3,
         amount: 7500,
         commission: 750,
-        status: "completed"
+        status: "completed" as const
       },
       {
         id: "BK002",
@@ -39,7 +38,7 @@ const DashboardPage = () => {
         passengers: 2,
         amount: 6000,
         commission: 600,
-        status: "completed"
+        status: "completed" as const
       },
       {
         id: "BK003",
@@ -48,21 +47,21 @@ const DashboardPage = () => {
         passengers: 1,
         amount: 3500,
         commission: 350,
-        status: "pending"
+        status: "pending" as const
       }
-    ],
+    ] as BookingHistoryItem[],
     commissionHistory: [
       {
         month: "April 2025",
         amount: 3200,
         bookings: 12,
-        status: "available"
+        status: "available" as const
       },
       {
         month: "March 2025",
         amount: 4600,
         bookings: 18,
-        status: "paid",
+        status: "paid" as const,
         paidOn: "31 Mar 2025",
         transactionId: "TXN78912345"
       },
@@ -70,11 +69,11 @@ const DashboardPage = () => {
         month: "February 2025",
         amount: 3900,
         bookings: 15,
-        status: "paid",
+        status: "paid" as const,
         paidOn: "28 Feb 2025",
         transactionId: "TXN45678901"
       }
-    ]
+    ] as CommissionHistoryItem[]
   };
   
   const handleWithdraw = () => {
