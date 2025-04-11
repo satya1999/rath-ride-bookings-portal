@@ -11,6 +11,7 @@ import RegisterPage from "./pages/RegisterPage";
 import VerifyOtpPage from "./pages/VerifyOtpPage";
 import TripDetailPage from "./pages/TripDetailPage";
 import DashboardPage from "./pages/DashboardPage";
+import BookingDetailPage from "./pages/BookingDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/verify-otp" element={<VerifyOtpPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/bookings/:id" element={<BookingDetailPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

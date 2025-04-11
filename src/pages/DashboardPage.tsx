@@ -3,9 +3,12 @@ import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CircleDollarSign, Ticket, BarChart3, Wallet } from "lucide-react";
+import { CircleDollarSign, Ticket, BarChart3, Wallet, Calendar, Clock, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import BookingHistoryList from "@/components/dashboard/BookingHistoryList";
+import CommissionHistory from "@/components/dashboard/CommissionHistory";
+import WithdrawalForm from "@/components/dashboard/WithdrawalForm";
 
 // This is just a placeholder for the MVP
 // In a real app, this would be connected to an auth system
@@ -18,7 +21,60 @@ const DashboardPage = () => {
     totalCommission: 15840,
     pendingCommission: 3200,
     totalBookings: 47,
-    walletBalance: 12640
+    walletBalance: 12640,
+    recentBookings: [
+      {
+        id: "BK001",
+        tripName: "Deluxe Trip to Puri",
+        date: "15 Apr 2025",
+        passengers: 3,
+        amount: 7500,
+        commission: 750,
+        status: "completed"
+      },
+      {
+        id: "BK002",
+        tripName: "Premium Konark Tour",
+        date: "16 Apr 2025",
+        passengers: 2,
+        amount: 6000,
+        commission: 600,
+        status: "completed"
+      },
+      {
+        id: "BK003",
+        tripName: "Royal Chilika Lake Trip",
+        date: "17 Apr 2025",
+        passengers: 1,
+        amount: 3500,
+        commission: 350,
+        status: "pending"
+      }
+    ],
+    commissionHistory: [
+      {
+        month: "April 2025",
+        amount: 3200,
+        bookings: 12,
+        status: "available"
+      },
+      {
+        month: "March 2025",
+        amount: 4600,
+        bookings: 18,
+        status: "paid",
+        paidOn: "31 Mar 2025",
+        transactionId: "TXN78912345"
+      },
+      {
+        month: "February 2025",
+        amount: 3900,
+        bookings: 15,
+        status: "paid",
+        paidOn: "28 Feb 2025",
+        transactionId: "TXN45678901"
+      }
+    ]
   };
   
   const handleWithdraw = () => {
@@ -109,23 +165,38 @@ const DashboardPage = () => {
             <CardContent>
               <p className="text-gray-600 mb-4">
                 This is your agent dashboard where you can manage bookings, track commissions, and withdraw funds.
-                For the MVP, this is a placeholder with mock data.
               </p>
-              <p className="mb-6">
-                Quick actions:
-              </p>
-              <div className="flex flex-wrap gap-3">
+              <div className="mt-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium mb-4 flex items-center">
+                    <Calendar className="mr-2 h-5 w-5 text-rath-red" /> Recent Bookings
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <BookingHistoryList bookings={dashboardData.recentBookings.slice(0, 3)} compact />
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-4 flex items-center">
+                    <CircleDollarSign className="mr-2 h-5 w-5 text-rath-red" /> Recent Commissions
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <CommissionHistory commissions={dashboardData.commissionHistory.slice(0, 2)} compact />
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3 mt-6">
                 <Button 
                   variant="outline" 
                   onClick={() => setActiveTab("bookings")}
                 >
-                  View Recent Bookings
+                  View All Bookings
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => setActiveTab("commissions")}
                 >
-                  Check Commissions
+                  Check All Commissions
                 </Button>
                 <Button
                   variant="outline"
@@ -140,50 +211,66 @@ const DashboardPage = () => {
         
         <TabsContent value="bookings">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>My Bookings</CardTitle>
+              <Button variant="outline" size="sm" className="flex items-center">
+                <Download className="mr-2 h-4 w-4" /> Export
+              </Button>
             </CardHeader>
             <CardContent>
-              <p className="text-center py-12 text-gray-500">
-                Your booking history will appear here.
-                <br />
-                This section will be implemented in Phase 2.
-              </p>
+              <BookingHistoryList bookings={dashboardData.recentBookings} />
             </CardContent>
           </Card>
         </TabsContent>
         
         <TabsContent value="commissions">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Commission History</CardTitle>
+              <Button variant="outline" size="sm" className="flex items-center">
+                <Download className="mr-2 h-4 w-4" /> Export
+              </Button>
             </CardHeader>
             <CardContent>
-              <p className="text-center py-12 text-gray-500">
-                Your commission history will appear here.
-                <br />
-                This section will be implemented in Phase 2.
-              </p>
+              <CommissionHistory commissions={dashboardData.commissionHistory} />
             </CardContent>
           </Card>
         </TabsContent>
         
         <TabsContent value="wallet">
-          <Card>
-            <CardHeader>
-              <CardTitle>Wallet & Withdrawals</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center justify-center py-8 space-y-4">
-                <Wallet className="h-12 w-12 text-rath-red" />
-                <p className="text-3xl font-bold">₹{dashboardData.walletBalance.toLocaleString()}</p>
-                <p className="text-gray-500">Available Balance</p>
-                <Button onClick={handleWithdraw}>
-                  Request Withdrawal
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>Withdrawal Request</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WithdrawalForm onWithdraw={handleWithdraw} availableBalance={dashboardData.walletBalance} />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Wallet Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                  <Wallet className="h-12 w-12 text-rath-red" />
+                  <p className="text-3xl font-bold">₹{dashboardData.walletBalance.toLocaleString()}</p>
+                  <p className="text-gray-500">Available Balance</p>
+                  <div className="w-full pt-4">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-500">Pending Commission</span>
+                      <span className="font-medium">₹{dashboardData.pendingCommission.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Last Withdrawal</span>
+                      <span className="font-medium">31 Mar 2025</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </PageLayout>
