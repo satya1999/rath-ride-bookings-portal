@@ -1,0 +1,37 @@
+
+/* Seat styles for the bus seat selection component */
+
+.seat {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.seat-available {
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s;
+}
+
+.seat-available:hover {
+  background-color: #e5e7eb;
+}
+
+.seat-booked {
+  background-color: #ef4444;
+  color: white;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.seat-selected {
+  background-color: #10b981;
+  color: white;
+  border: 1px solid #059669;
+}

@@ -1,0 +1,41 @@
+
+import { format } from "date-fns";
+
+export interface Itinerary {
+  day: number;
+  title: string;
+  description: string;
+}
+
+export interface TripPhoto {
+  title: string;
+  url: string;
+}
+
+export interface Trip {
+  id: string;
+  title: string;
+  description: string;
+  from: string;
+  to: string;
+  date: Date;
+  formattedDate: string;
+  departureTime: string;
+  arrivalTime: string;
+  fare: number;
+  availableSeats: number;
+  totalSeats: number;
+  busType: string;
+  amenities: string[];
+  imageUrl: string;
+  itinerary: Itinerary[];
+  photos: TripPhoto[];
+}
+
+// Helper function to create Trip object with formatted date
+export function createTrip(tripData: Omit<Trip, "formattedDate">): Trip {
+  return {
+    ...tripData,
+    formattedDate: format(tripData.date, "dd MMMM yyyy"),
+  };
+}
