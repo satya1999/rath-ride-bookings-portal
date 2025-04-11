@@ -49,42 +49,45 @@ const testimonials = [
 const featuredTrips = [
   {
     id: "trip1",
-    title: "Puri to Bhubaneswar",
-    from: "Puri",
-    to: "Bhubaneswar",
-    date: new Date(2024, 3, 15),
-    departureTime: "09:00 AM",
-    fare: 399,
-    availableSeats: 25,
-    totalSeats: 30,
-    busType: "Seater" as "Seater" | "Sleeper" | "Mixed",
-    imageUrl: "/placeholder.svg"
+    title: "Kedarnath & Badrinath Yatra",
+    from: "Bhubaneswar",
+    to: "Kedarnath & Badrinath",
+    date: new Date(2025, 4, 14),
+    departureTime: "08:00 AM",
+    fare: 24500,
+    availableSeats: 28,
+    totalSeats: 36,
+    busType: "Sleeper" as "Seater" | "Sleeper" | "Mixed",
+    imageUrl: "https://source.unsplash.com/random/300x200/?kedarnath",
+    description: "14 Days / 13 Nights | Pure veg Lunch and Dinner daily | Dharamshala Stay",
   },
   {
     id: "trip2",
-    title: "Bhubaneswar to Konark",
-    from: "Bhubaneswar",
-    to: "Konark",
-    date: new Date(2024, 3, 20),
-    departureTime: "10:30 AM",
-    fare: 450,
-    availableSeats: 18,
-    totalSeats: 30,
+    title: "Vrindavan, Mathura & Ayodhya Darshan",
+    from: "Balasore",
+    to: "Vrindavan, Mathura & Ayodhya",
+    date: new Date(2025, 4, 20),
+    departureTime: "07:00 AM",
+    fare: 18500,
+    availableSeats: 24,
+    totalSeats: 36,
     busType: "Sleeper" as "Seater" | "Sleeper" | "Mixed",
-    imageUrl: "/placeholder.svg"
+    imageUrl: "https://source.unsplash.com/random/300x200/?mathura",
+    description: "8 Days / 7 Nights | Satvik Lunch and Dinner included | Dharamshala Stay",
   },
   {
     id: "trip3",
-    title: "Cuttack to Puri",
+    title: "Kashi, Prayagraj & Chitrakoot Pilgrimage",
     from: "Cuttack",
-    to: "Puri",
-    date: new Date(2024, 3, 25),
-    departureTime: "08:00 AM",
-    fare: 500,
-    availableSeats: 22,
-    totalSeats: 30,
-    busType: "Mixed" as "Seater" | "Sleeper" | "Mixed",
-    imageUrl: "/placeholder.svg"
+    to: "Kashi, Prayagraj & Chitrakoot",
+    date: new Date(2025, 4, 18),
+    departureTime: "06:30 AM",
+    fare: 16900,
+    availableSeats: 32,
+    totalSeats: 36,
+    busType: "Sleeper" as "Seater" | "Sleeper" | "Mixed",
+    imageUrl: "https://source.unsplash.com/random/300x200/?kashi",
+    description: "7 Days / 6 Nights | Daily hot Lunch & Dinner provided | Dharamshala Stay",
   }
 ];
 
@@ -150,7 +153,10 @@ const Index = () => {
           <div className="text-center">
             <h2 className="text-base text-rath-red font-semibold tracking-wide uppercase">Featured Trips</h2>
             <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-              Popular Routes
+              Popular Packages
+            </p>
+            <p className="mt-2 text-lg text-gray-600 max-w-2xl mx-auto">
+              Explore our most popular pilgrimage and tour packages with comfortable travel and stay arrangements
             </p>
           </div>
           
@@ -169,6 +175,7 @@ const Index = () => {
                 totalSeats={trip.totalSeats}
                 busType={trip.busType}
                 imageUrl={trip.imageUrl}
+                description={trip.description}
               />
             ))}
           </div>
