@@ -16,6 +16,7 @@ import BookingDetailPage from "./pages/BookingDetailPage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
+import AdminLoginPage from "./pages/AdminLoginPage";
 
 // Admin Routes
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/trips" element={<TripsPage />} />
             <Route path="/trips/:id" element={<TripDetailPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/admin-login" element={<AdminLoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/verify-otp" element={<VerifyOtpPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />

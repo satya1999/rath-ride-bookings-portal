@@ -63,6 +63,10 @@ const LoginForm = () => {
     navigate("/register");
   };
 
+  const handleAdminLogin = () => {
+    navigate("/admin-login");
+  };
+
   return (
     <Card className="w-full max-w-lg mx-auto">
       <CardHeader className="space-y-1">
@@ -143,7 +147,7 @@ const LoginForm = () => {
         <Button 
           variant="outline" 
           className="w-full"
-          onClick={() => navigate("/admin-login")}
+          onClick={handleAdminLogin}
         >
           Login as Admin
         </Button>
