@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -155,6 +154,50 @@ export const bookingService = {
       console.error("Error updating booking status:", error);
       toast.error("Failed to update booking status");
       return false;
+    }
+  },
+
+  getTripBookedSeats: async (tripId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("seats")
+        .eq("trip_id", tripId)
+        .in("status", ["confirmed", "pending"]);
+        
+      if (error) throw error;
+      
+      // Extract all booked seats
+      let bookedSeats: string[] = [];
+      if (data) {
+        data.forEach(booking => {
+          const seats = booking.seats as string[];
+          bookedSeats = [...bookedSeats, ...seats];
+        });
+      }
+      
+      return bookedSeats;
+    } catch (error) {
+      console.error("Error fetching booked seats:", error);
+      toast.error("Failed to fetch seat availability");
+      return [];
+    }
+  },
+  
+  createBooking: async (bookingData: any) => {
+    try {
+      const { data, error } = await supabase
+        .from("bookings")
+        .insert(bookingData)
+        .select();
+        
+      if (error) throw error;
+      
+      return data[0] || null;
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      toast.error("Failed to create booking");
+      return null;
     }
   }
 };

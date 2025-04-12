@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Trip, Passenger } from "@/types/trip";
@@ -9,6 +9,7 @@ import TicketPreview from "./TicketPreview";
 import SeatSelectionContent from "./seat-selection/SeatSelectionContent";
 import { useSeatLayout } from "./seat-selection/useSeatLayout";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SeatLayoutData {
   rows: number;
@@ -32,6 +33,56 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
   const { toast: useToastHook } = useToast();
   const [currentStep, setCurrentStep] = useState<BookingStep>("selectSeats");
   const [passengerData, setPassengerData] = useState<Passenger[]>([]);
+  const [bookedSeats, setBookedSeats] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch already booked seats for this trip
+  useEffect(() => {
+    const fetchBookedSeats = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from("bookings")
+          .select("seats")
+          .eq("trip_id", trip.id)
+          .in("status", ["confirmed", "pending"]);
+        
+        if (error) {
+          console.error("Error fetching booked seats:", error);
+          toast.error("Failed to fetch seat availability");
+          return;
+        }
+
+        // Extract all booked seats
+        let allBookedSeats: string[] = [];
+        if (data) {
+          data.forEach(booking => {
+            const seats = booking.seats as string[];
+            allBookedSeats = [...allBookedSeats, ...seats];
+          });
+        }
+        
+        // Update unavailable seats with already booked seats
+        const updatedLayout = {
+          ...seatLayout,
+          unavailableSeats: [...seatLayout.unavailableSeats, ...allBookedSeats]
+        };
+        
+        setBookedSeats(allBookedSeats);
+        
+        // Update seatLayout.unavailableSeats with real booked seats
+        seatLayout.unavailableSeats = updatedLayout.unavailableSeats;
+        
+      } catch (error) {
+        console.error("Error in fetchBookedSeats:", error);
+        toast.error("Failed to fetch seat availability");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchBookedSeats();
+  }, [trip.id]);
   
   const { lowerDeckSeats, upperDeckBerths, handleSeatClick } = useSeatLayout(
     seatLayout, 
@@ -79,6 +130,21 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
   const totalAdvanceAmount = passengerData.reduce((sum, passenger) => 
     sum + (passenger.advanceAmount || 2000), 0);
   
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-2">Checking seat availability...</h3>
+              <p className="text-gray-500">Please wait while we fetch the latest seat information.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   return (
     <Card>
       <CardContent className="pt-6">
@@ -105,6 +171,8 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
             passengers={passengerData}
             fare={totalAdvanceAmount}
             onPaymentSuccess={handlePaymentSuccess}
+            tripId={trip.id}
+            selectedSeats={selectedSeats}
           />
         )}
         

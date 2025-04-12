@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +9,8 @@ import TripItineraryTab from "@/components/trips/TripItineraryTab";
 import TripPhotosTab from "@/components/trips/TripPhotosTab";
 import TripSeatsTab from "@/components/trips/TripSeatsTab";
 import { Trip, createTrip } from "@/types/trip";
+import { bookingService } from "@/services/api";
+import { toast } from "sonner";
 import "@/styles/seat.css";
 
 // For the MVP, we'll use mock data
@@ -53,21 +56,39 @@ const mockTripData = {
   ]
 };
 
-// Updated seat layout data with L/R notation
-const seatLayout = {
-  rows: 10,
-  columns: 3,
-  aisle: [1], // Column indices that represent the aisle
-  unavailableSeats: ["L2", "L7", "R3", "R4", "R11", "R16", "SR2", "SR8", "SL3"], // Already booked seats
-  sleeperBerths: 15, // 5 on left side, 10 on right side
-  upperDeck: true
-};
-
 const TripDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const [trip] = useState<Trip>(createTrip(mockTripData)); // Use our helper function
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("details");
+  const [seatLayout, setSeatLayout] = useState({
+    rows: 10,
+    columns: 3,
+    aisle: [1], // Column indices that represent the aisle
+    unavailableSeats: ["L2", "L7", "R3", "R4", "R11", "R16", "SR2", "SR8", "SL3"], // Default unavailable seats
+    sleeperBerths: 15, // 5 on left side, 10 on right side
+    upperDeck: true
+  });
+  
+  // Fetch booked seats for this trip
+  useEffect(() => {
+    const fetchBookedSeats = async () => {
+      try {
+        const bookedSeats = await bookingService.getTripBookedSeats(trip.id);
+        if (bookedSeats && bookedSeats.length > 0) {
+          setSeatLayout(prev => ({
+            ...prev,
+            unavailableSeats: [...prev.unavailableSeats, ...bookedSeats]
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching booked seats:", error);
+        toast.error("Failed to load all booked seats");
+      }
+    };
+    
+    fetchBookedSeats();
+  }, [trip.id]);
 
   return (
     <PageLayout>

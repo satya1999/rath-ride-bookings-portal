@@ -5,33 +5,74 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Passenger } from "@/types/trip";
 import { IndianRupee, CreditCard, CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 
 interface PaymentGatewayProps {
   passengers: Passenger[];
   fare: number;
   onPaymentSuccess: () => void;
+  tripId: string; // Add trip ID prop
+  selectedSeats: string[]; // Add selected seats prop
 }
 
-const PaymentGateway = ({ passengers, fare, onPaymentSuccess }: PaymentGatewayProps) => {
-  const { toast } = useToast();
+const PaymentGateway = ({ passengers, fare, onPaymentSuccess, tripId, selectedSeats }: PaymentGatewayProps) => {
+  const { toast: useToastHook } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const { user } = useAuth();
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     setIsProcessing(true);
     
-    // Simulating payment processing with PhonePe
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      // Generate booking number
+      const bookingNumber = `BK${Math.floor(100000 + Math.random() * 900000)}`;
+      
+      // Calculate total trip fare
+      const totalTripFare = passengers.reduce((sum, passenger) => sum + 24500, 0);
+      
+      // Prepare booking data
+      const bookingData = {
+        booking_number: bookingNumber,
+        user_id: user?.id || '',
+        agent_id: user?.id || '', // Assuming the current user is an agent
+        trip_id: tripId,
+        seats: selectedSeats,
+        passengers: passengers,
+        total_amount: totalTripFare,
+        status: 'confirmed'
+      };
+
+      // Save booking to database
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert(bookingData);
+      
+      if (error) {
+        console.error('Booking error:', error);
+        throw error;
+      }
       
       // Simulate successful payment
-      toast({
-        title: "Payment Successful!",
-        description: `₹${fare} has been successfully paid.`,
-        variant: "default",
-      });
+      setTimeout(() => {
+        setIsProcessing(false);
+        
+        toast.success("Payment Successful!", {
+          description: `₹${fare} has been successfully paid.`
+        });
+        
+        onPaymentSuccess();
+      }, 2000);
       
-      onPaymentSuccess();
-    }, 2000);
+    } catch (error) {
+      console.error("Payment error:", error);
+      setIsProcessing(false);
+      toast.error("Payment failed", { 
+        description: "There was an error processing your payment. Please try again." 
+      });
+    }
   };
 
   // Calculate total trip fare (to show balance)
