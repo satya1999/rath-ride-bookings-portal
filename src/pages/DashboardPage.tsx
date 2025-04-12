@@ -56,9 +56,11 @@ const DashboardPage = () => {
     });
   };
 
-  const navigateToBooking = () => {
-    // Navigate to the trips page for booking new tickets
-    navigate("/trips");
+  const navigateToBooking = (e: React.MouseEvent) => {
+    // Prevent any default behavior
+    e.preventDefault();
+    // Use navigate with replace:false to ensure we create a new history entry
+    navigate("/trips", { replace: false });
   };
   
   // Update URL when tab changes
