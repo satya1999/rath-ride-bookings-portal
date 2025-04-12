@@ -34,6 +34,7 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement
     
+    // Always remove dark class first
     root.classList.remove("dark")
     
     if (theme === "system") {
@@ -42,15 +43,13 @@ export function ThemeProvider({
         ? "dark"
         : "light"
       
+      // Only add dark class if system preference is dark
       if (systemTheme === "dark") {
         root.classList.add("dark")
       }
-      return
     }
-    
-    if (theme === "dark") {
-      root.classList.add("dark")
-    }
+    // We don't need to check for theme === "dark" anymore since it's not in our Theme type
+    // Just ensuring light theme is active (which is default with dark class removed)
   }, [theme])
 
   const value = {

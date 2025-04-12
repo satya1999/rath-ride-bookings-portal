@@ -32,7 +32,7 @@ import AgentProfilePage from "./pages/AgentProfilePage";
 function App() {
   return (
     <ThemeProvider
-      defaultTheme="system"
+      defaultTheme="light"
       storageKey="vite-react-theme"
     >
       <BrowserRouter>
