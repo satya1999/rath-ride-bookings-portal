@@ -27,7 +27,7 @@ type BookingStep = "selectSeats" | "passengerDetails" | "payment" | "ticket";
 const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: TripSeatsTabProps) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<BookingStep>("selectSeats");
-  const [passengerData, setPassengerData] = useState<Passenger | null>(null);
+  const [passengerData, setPassengerData] = useState<Passenger[]>([]);
   
   // Generate seat layout
   const seats: ({ id: string; booked: boolean; selected: boolean } | null)[][] = [];
@@ -79,7 +79,7 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
     setCurrentStep("passengerDetails");
   };
   
-  const handleSubmitPassengerForm = (data: Passenger) => {
+  const handleSubmitPassengerForm = (data: Passenger[]) => {
     setPassengerData(data);
     setCurrentStep("payment");
   };
@@ -87,6 +87,10 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
   const handlePaymentSuccess = () => {
     setCurrentStep("ticket");
   };
+
+  // Calculate total advance amount from all passengers
+  const totalAdvanceAmount = passengerData.reduce((sum, passenger) => 
+    sum + (passenger.advanceAmount || 2000), 0);
   
   return (
     <Card>
@@ -95,7 +99,7 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
           <>
             <h2 className="text-2xl font-bold mb-4">Select Seats</h2>
             <p className="text-gray-600 mb-6">
-              Click on a seat to select it for booking. You'll need to pay ₹2,000 per seat as advance.
+              Click on a seat to select it for booking. You'll need to pay ₹2,000 per seat as minimum advance.
             </p>
             
             <div className="flex items-center justify-center space-x-6 mb-6">
@@ -162,18 +166,18 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
           />
         )}
         
-        {currentStep === "payment" && passengerData && (
+        {currentStep === "payment" && passengerData.length > 0 && (
           <PaymentGateway
-            passenger={passengerData}
-            fare={trip.fare}
+            passengers={passengerData}
+            fare={totalAdvanceAmount}
             onPaymentSuccess={handlePaymentSuccess}
           />
         )}
         
-        {currentStep === "ticket" && passengerData && (
+        {currentStep === "ticket" && passengerData.length > 0 && (
           <TicketPreview 
             trip={trip}
-            passenger={passengerData}
+            passengers={passengerData}
           />
         )}
       </CardContent>

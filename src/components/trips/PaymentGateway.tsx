@@ -7,12 +7,12 @@ import { Passenger } from "@/types/trip";
 import { IndianRupee, CreditCard, CheckCircle2 } from "lucide-react";
 
 interface PaymentGatewayProps {
-  passenger: Passenger;
+  passengers: Passenger[];
   fare: number;
   onPaymentSuccess: () => void;
 }
 
-const PaymentGateway = ({ passenger, fare, onPaymentSuccess }: PaymentGatewayProps) => {
+const PaymentGateway = ({ passengers, fare, onPaymentSuccess }: PaymentGatewayProps) => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -34,6 +34,10 @@ const PaymentGateway = ({ passenger, fare, onPaymentSuccess }: PaymentGatewayPro
     }, 2000);
   };
 
+  // Calculate total trip fare (to show balance)
+  const totalTripFare = passengers.reduce((sum, passenger) => sum + 24500, 0);
+  const balanceDue = totalTripFare - fare;
+
   return (
     <Card className="w-full">
       <CardContent className="pt-6">
@@ -42,31 +46,43 @@ const PaymentGateway = ({ passenger, fare, onPaymentSuccess }: PaymentGatewayPro
         <div className="space-y-6">
           <div className="bg-gray-50 p-4 rounded-lg">
             <h3 className="text-lg font-medium mb-4">Booking Summary</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Passenger</span>
-                <span className="font-medium">{passenger.name}</span>
+            <div>
+              <h4 className="font-medium mb-2">Passenger Details</h4>
+              <div className="space-y-3 mb-4">
+                {passengers.map((passenger, index) => (
+                  <div key={index} className="border-b border-gray-200 pb-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Passenger {index + 1}</span>
+                      <span className="font-medium">{passenger.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Seat</span>
+                      <span className="font-medium">{passenger.seatNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Advance</span>
+                      <span className="font-medium">₹{passenger.advanceAmount || 2000}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Seat</span>
-                <span className="font-medium">{passenger.seatNumber}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Contact</span>
-                <span className="font-medium">{passenger.mobile}</span>
-              </div>
+              
               <div className="border-t border-gray-200 my-2"></div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Base Fare</span>
+                <span className="text-gray-600">Total Fare</span>
+                <span className="font-medium">₹{totalTripFare}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Advance Payment</span>
                 <span className="font-medium">₹{fare}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Taxes & Fees</span>
-                <span className="font-medium">₹0</span>
+                <span className="text-gray-600">Balance Due (on boarding)</span>
+                <span className="font-medium">₹{balanceDue}</span>
               </div>
               <div className="border-t border-gray-200 my-2"></div>
               <div className="flex justify-between">
-                <span className="text-gray-600 font-semibold">Total Amount</span>
+                <span className="text-gray-600 font-semibold">Amount to Pay Now</span>
                 <span className="font-bold">₹{fare}</span>
               </div>
             </div>

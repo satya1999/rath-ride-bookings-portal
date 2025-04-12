@@ -17,7 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Passenger } from "@/types/trip";
-import { User, Phone, Droplets, CalendarDays, Upload, CreditCard } from "lucide-react";
+import { User, Phone, Droplets, CalendarDays, Upload, CreditCard, IndianRupee } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Form validation schema
 const passengerFormSchema = z.object({
@@ -25,16 +26,19 @@ const passengerFormSchema = z.object({
   mobile: z.string().regex(/^[6-9]\d{9}$/, { message: "Enter a valid 10-digit Indian mobile number" }),
   age: z.coerce.number().int().min(1).max(120),
   bloodGroup: z.string().optional(),
-  seatNumber: z.string()
+  seatNumber: z.string(),
+  advanceAmount: z.coerce.number().int().min(2000, { message: "Advance amount must be at least ₹2,000" })
 });
 
 interface PassengerFormProps {
   selectedSeats: string[];
-  onSubmit: (data: Passenger) => void;
+  onSubmit: (data: Passenger[]) => void;
 }
 
 const PassengerForm = ({ selectedSeats, onSubmit }: PassengerFormProps) => {
   const { toast } = useToast();
+  const [currentPassengerIndex, setCurrentPassengerIndex] = useState(0);
+  const [passengers, setPassengers] = useState<Passenger[]>([]);
   const [aadharFront, setAadharFront] = useState<File | null>(null);
   const [aadharBack, setAadharBack] = useState<File | null>(null);
   
@@ -45,7 +49,8 @@ const PassengerForm = ({ selectedSeats, onSubmit }: PassengerFormProps) => {
       mobile: "",
       age: undefined,
       bloodGroup: "",
-      seatNumber: selectedSeats[0] || ""
+      seatNumber: selectedSeats[currentPassengerIndex] || "",
+      advanceAmount: 2000
     }
   });
 
@@ -70,7 +75,7 @@ const PassengerForm = ({ selectedSeats, onSubmit }: PassengerFormProps) => {
       return;
     }
 
-    // Make sure all required fields from Passenger type are included
+    // Create passenger data
     const passengerData: Passenger = {
       name: values.name,
       mobile: values.mobile,
@@ -79,9 +84,35 @@ const PassengerForm = ({ selectedSeats, onSubmit }: PassengerFormProps) => {
       seatNumber: values.seatNumber,
       aadharFront,
       aadharBack,
+      advanceAmount: values.advanceAmount
     };
 
-    onSubmit(passengerData);
+    if (currentPassengerIndex < selectedSeats.length - 1) {
+      // Add current passenger and move to next seat
+      setPassengers([...passengers, passengerData]);
+      setCurrentPassengerIndex(currentPassengerIndex + 1);
+      setAadharFront(null);
+      setAadharBack(null);
+      
+      // Reset form for next passenger
+      form.reset({
+        name: "",
+        mobile: "",
+        age: undefined,
+        bloodGroup: "",
+        seatNumber: selectedSeats[currentPassengerIndex + 1],
+        advanceAmount: values.advanceAmount // Keep the same advance amount
+      });
+      
+      toast({
+        title: "Passenger added",
+        description: `Passenger ${currentPassengerIndex + 1} details saved. Please enter details for Passenger ${currentPassengerIndex + 2}.`,
+      });
+    } else {
+      // Submit all passengers' data
+      const allPassengers = [...passengers, passengerData];
+      onSubmit(allPassengers);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'front' | 'back') => {
@@ -94,10 +125,55 @@ const PassengerForm = ({ selectedSeats, onSubmit }: PassengerFormProps) => {
     }
   };
 
+  // Generate passenger tabs
+  const passengerTabs = selectedSeats.map((_, index) => ({
+    value: index.toString(),
+    label: `Passenger ${index + 1} - Seat ${selectedSeats[index]}`
+  }));
+
   return (
     <Card className="w-full">
       <CardContent className="pt-6">
         <h2 className="text-2xl font-bold mb-6">Passenger Details</h2>
+        {selectedSeats.length > 1 && (
+          <div className="mb-6">
+            <Tabs value={currentPassengerIndex.toString()} onValueChange={(value) => {
+              // Only allow changing to completed passenger tabs or current one
+              const tabIndex = parseInt(value);
+              if (tabIndex <= passengers.length) {
+                setCurrentPassengerIndex(tabIndex);
+                if (tabIndex < passengers.length) {
+                  // Load saved data for this passenger
+                  const passenger = passengers[tabIndex];
+                  form.reset({
+                    name: passenger.name,
+                    mobile: passenger.mobile,
+                    age: passenger.age,
+                    bloodGroup: passenger.bloodGroup || "",
+                    seatNumber: passenger.seatNumber,
+                    advanceAmount: passenger.advanceAmount || 2000
+                  });
+                  setAadharFront(passenger.aadharFront);
+                  setAadharBack(passenger.aadharBack);
+                }
+              }
+            }}>
+              <TabsList className="mb-4 flex overflow-x-auto max-w-full">
+                {passengerTabs.map((tab) => (
+                  <TabsTrigger 
+                    key={tab.value} 
+                    value={tab.value}
+                    className="whitespace-nowrap"
+                    disabled={parseInt(tab.value) > passengers.length}
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -202,6 +278,32 @@ const PassengerForm = ({ selectedSeats, onSubmit }: PassengerFormProps) => {
                   </FormItem>
                 )}
               />
+              
+              {/* Advance Amount field */}
+              <FormField
+                control={form.control}
+                name="advanceAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <IndianRupee className="h-4 w-4" /> Advance Amount
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={2000}
+                        placeholder="Minimum ₹2,000"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-gray-500">
+                      Minimum advance: ₹2,000. Balance will be collected on boarding day.
+                    </p>
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Aadhar Card Upload */}
@@ -238,9 +340,37 @@ const PassengerForm = ({ selectedSeats, onSubmit }: PassengerFormProps) => {
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center">
+              <div>
+                {currentPassengerIndex > 0 && (
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={() => {
+                      setCurrentPassengerIndex(currentPassengerIndex - 1);
+                      const prevPassenger = passengers[currentPassengerIndex - 1];
+                      form.reset({
+                        name: prevPassenger.name,
+                        mobile: prevPassenger.mobile,
+                        age: prevPassenger.age,
+                        bloodGroup: prevPassenger.bloodGroup || "",
+                        seatNumber: prevPassenger.seatNumber,
+                        advanceAmount: prevPassenger.advanceAmount || 2000
+                      });
+                      setAadharFront(prevPassenger.aadharFront);
+                      setAadharBack(prevPassenger.aadharBack);
+                    }}
+                  >
+                    Previous Passenger
+                  </Button>
+                )}
+              </div>
               <Button type="submit" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" /> Proceed to Payment
+                {currentPassengerIndex < selectedSeats.length - 1 ? (
+                  <>Next Passenger</>
+                ) : (
+                  <><CreditCard className="h-4 w-4" /> Proceed to Payment</>
+                )}
               </Button>
             </div>
           </form>

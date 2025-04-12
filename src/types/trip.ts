@@ -20,6 +20,7 @@ export interface Passenger {
   aadharFront?: File;
   aadharBack?: File;
   seatNumber: string;
+  advanceAmount?: number; // Added field for advance payment amount
 }
 
 export interface Trip {
