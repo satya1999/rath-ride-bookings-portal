@@ -161,6 +161,13 @@ export const bookingService = {
 
   getTripBookedSeats: async (tripId: string) => {
     try {
+      // Check if tripId is a valid UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(tripId)) {
+        console.warn("Invalid UUID format for trip_id:", tripId);
+        return []; // Return empty array if invalid UUID
+      }
+      
       const { data, error } = await supabase
         .from("bookings")
         .select("seats")
@@ -188,6 +195,12 @@ export const bookingService = {
   
   createBooking: async (bookingData: any) => {
     try {
+      // Validate tripId is in UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(bookingData.trip_id)) {
+        throw new Error("Invalid trip ID format");
+      }
+      
       // Convert passengers and seats to the proper Json type for Supabase
       const formattedData = {
         ...bookingData,

@@ -16,7 +16,7 @@ import "@/styles/seat.css";
 // For the MVP, we'll use mock data
 // In a real application, this would come from an API
 const mockTripData = {
-  id: "1",
+  id: "550e8400-e29b-41d4-a716-446655440000", // Using a valid UUID format
   title: "Kedarnath & Badrinath Yatra",
   description: "Experience a spiritual journey to the sacred shrines of Kedarnath and Badrinath. Travel in our luxurious 1X2 AC Sleeper Bus with upper berths for a comfortable journey through the Himalayas.",
   from: "Bhubaneswar",

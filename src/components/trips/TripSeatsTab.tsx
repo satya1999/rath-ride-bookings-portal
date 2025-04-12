@@ -9,7 +9,7 @@ import TicketPreview from "./TicketPreview";
 import SeatSelectionContent from "./seat-selection/SeatSelectionContent";
 import { useSeatLayout } from "./seat-selection/useSeatLayout";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { bookingService } from "@/services/api";
 
 interface SeatLayoutData {
   rows: number;
@@ -35,46 +35,30 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
   const [passengerData, setPassengerData] = useState<Passenger[]>([]);
   const [bookedSeats, setBookedSeats] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Fetch already booked seats for this trip
   useEffect(() => {
     const fetchBookedSeats = async () => {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from("bookings")
-          .select("seats")
-          .eq("trip_id", trip.id)
-          .in("status", ["confirmed", "pending"]);
-        
-        if (error) {
-          console.error("Error fetching booked seats:", error);
-          toast.error("Failed to fetch seat availability");
-          return;
-        }
-
-        // Extract all booked seats
-        let allBookedSeats: string[] = [];
-        if (data) {
-          data.forEach(booking => {
-            const seats = booking.seats as string[];
-            allBookedSeats = [...allBookedSeats, ...seats];
-          });
-        }
+        setError(null);
+        const bookedSeats = await bookingService.getTripBookedSeats(trip.id);
         
         // Update unavailable seats with already booked seats
         const updatedLayout = {
           ...seatLayout,
-          unavailableSeats: [...seatLayout.unavailableSeats, ...allBookedSeats]
+          unavailableSeats: [...seatLayout.unavailableSeats, ...bookedSeats]
         };
         
-        setBookedSeats(allBookedSeats);
+        setBookedSeats(bookedSeats);
         
         // Update seatLayout.unavailableSeats with real booked seats
         seatLayout.unavailableSeats = updatedLayout.unavailableSeats;
         
       } catch (error) {
         console.error("Error in fetchBookedSeats:", error);
+        setError("Failed to load seat availability. Please try again later.");
         toast.error("Failed to fetch seat availability");
       } finally {
         setIsLoading(false);
@@ -138,6 +122,27 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
             <div className="text-center">
               <h3 className="text-lg font-medium mb-2">Checking seat availability...</h3>
               <p className="text-gray-500">Please wait while we fetch the latest seat information.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-2 text-red-500">Error Loading Seats</h3>
+              <p className="text-gray-500 mb-4">{error}</p>
+              <button 
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                onClick={() => window.location.reload()}
+              >
+                Try Again
+              </button>
             </div>
           </div>
         </CardContent>
