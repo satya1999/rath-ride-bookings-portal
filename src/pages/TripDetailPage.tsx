@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
@@ -54,13 +53,13 @@ const mockTripData = {
   ]
 };
 
-// Updated seat layout data with simple numerical seat numbering
+// Updated seat layout data with L/R notation
 const seatLayout = {
-  rows: 9,
+  rows: 10,
   columns: 3,
   aisle: [1], // Column indices that represent the aisle
-  unavailableSeats: ["1", "8", "15", "20", "27", "32", "35", "41"], // Already booked seats
-  sleeperBerths: 10, // 5 on each side
+  unavailableSeats: ["L2", "L7", "R3", "R4", "R11", "R16", "SR2", "SR8", "SL3"], // Already booked seats
+  sleeperBerths: 15, // 5 on left side, 10 on right side
   upperDeck: true
 };
 
