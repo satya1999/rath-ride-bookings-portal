@@ -1,33 +1,33 @@
+
 import React from 'react'
 import {
   BrowserRouter,
   Routes,
   Route,
 } from "react-router-dom";
-import Index from "@/pages/IndexPage";
-import AboutPage from "@/pages/AboutPage";
-import ContactPage from "@/pages/ContactPage";
-import LoginPage from "@/pages/LoginPage";
-import AdminLoginPage from "@/pages/AdminLoginPage";
-import RegisterPage from "@/pages/RegisterPage";
-import VerifyOtpPage from "@/pages/VerifyOtpPage";
-import DashboardPage from "@/pages/DashboardPage";
-import TripsPage from "@/pages/TripsPage";
-import TripDetailPage from "@/pages/TripDetailPage";
-import BookingDetailPage from "@/pages/BookingDetailPage";
-import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
-import AgentsPage from "@/pages/admin/AgentsPage";
-import UsersPage from "@/pages/admin/UsersPage";
-import BookingsPage from "@/pages/admin/BookingsPage";
-import CommissionsPage from "@/pages/admin/CommissionsPage";
-import BusLayoutsPage from "@/pages/admin/BusLayoutsPage";
-import SettingsPage from "@/pages/admin/SettingsPage";
-import NotFound from "@/pages/NotFoundPage";
+import Index from "./pages/Index";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import LoginPage from "./pages/LoginPage";
+import AdminLoginPage from "./pages/AdminLoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import VerifyOtpPage from "./pages/VerifyOtpPage";
+import DashboardPage from "./pages/DashboardPage";
+import TripsPage from "./pages/TripsPage";
+import TripDetailPage from "./pages/TripDetailPage";
+import BookingDetailPage from "./pages/BookingDetailPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AgentsPage from "./pages/admin/AgentsPage";
+import UsersPage from "./pages/admin/UsersPage";
+import BookingsPage from "./pages/admin/BookingsPage";
+import CommissionsPage from "./pages/admin/CommissionsPage";
+import BusLayoutsPage from "./pages/admin/BusLayoutsPage";
+import SettingsPage from "./pages/admin/SettingsPage";
+import NotFound from "./pages/NotFound";
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from './contexts/AuthContext';
-import { cn } from "@/lib/utils"
-import { ThemeProvider } from "@/components/theme-provider"
-import AgentProfilePage from "@/pages/AgentProfilePage";
+import { ThemeProvider } from "./components/theme-provider"
+import AgentProfilePage from "./pages/AgentProfilePage";
 
 function App() {
   return (
