@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -34,6 +34,10 @@ const Navbar = () => {
 
   const handleDashboard = () => {
     navigate("/dashboard");
+  };
+
+  const handleProfile = () => {
+    navigate("/profile");
   };
 
   const handleLogout = async () => {
@@ -72,6 +76,9 @@ const Navbar = () => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleProfile}>
+                    <UserCircle className="h-4 w-4 mr-2" /> My Profile
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleDashboard}>
                     <User className="h-4 w-4 mr-2" /> Dashboard
                   </DropdownMenuItem>
@@ -139,6 +146,12 @@ const Navbar = () => {
           
           {user ? (
             <div className="flex flex-col space-y-2 mt-4">
+              <Button 
+                onClick={() => { handleProfile(); setIsMenuOpen(false); }} 
+                className="w-full"
+              >
+                <UserCircle className="h-4 w-4 mr-2" /> My Profile
+              </Button>
               <Button 
                 onClick={() => { handleDashboard(); setIsMenuOpen(false); }} 
                 className="w-full"
