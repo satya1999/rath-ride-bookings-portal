@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SeatLegend from "./SeatLegend";
 import LowerDeckSeats from "./LowerDeckSeats";
 import UpperDeckBerths from "./UpperDeckBerths";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SeatLayoutData {
   rows: number;
@@ -33,6 +34,7 @@ const SeatSelectionContent = ({
   handleProceedToPassengerDetails
 }: SeatSelectionContentProps) => {
   const [activeDeck, setActiveDeck] = React.useState<DeckType>("lower");
+  const isMobile = useIsMobile();
 
   return (
     <>
@@ -44,9 +46,9 @@ const SeatSelectionContent = ({
       <SeatLegend />
       
       <Tabs value={activeDeck} onValueChange={(value) => setActiveDeck(value as DeckType)} className="w-full mb-6">
-        <TabsList className="grid w-[400px] grid-cols-2 mx-auto">
-          <TabsTrigger value="lower">Lower Deck (1×2)</TabsTrigger>
-          <TabsTrigger value="upper">Upper Deck (Sleeper)</TabsTrigger>
+        <TabsList className={`grid ${isMobile ? "w-full" : "w-[400px]"} grid-cols-2 mx-auto`}>
+          <TabsTrigger value="lower" className="text-xs sm:text-sm">Lower Deck (1×2)</TabsTrigger>
+          <TabsTrigger value="upper" className="text-xs sm:text-sm">Upper Deck (Sleeper)</TabsTrigger>
         </TabsList>
         
         <TabsContent value="lower">

@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UpperDeckBerthsProps {
   berths: ({ id: string; booked: boolean; selected: boolean })[][];
@@ -7,12 +8,14 @@ interface UpperDeckBerthsProps {
 }
 
 const UpperDeckBerths = ({ berths, onBerthClick }: UpperDeckBerthsProps) => {
+  const isMobile = useIsMobile();
+  
   return (
     <div className="flex justify-center mb-8">
-      <div className="bg-gray-100 p-6 rounded-lg">
-        <div className="mb-6 text-center text-xl font-bold">Sleepers</div>
+      <div className="bg-gray-100 p-4 sm:p-6 rounded-lg">
+        <div className="mb-6 text-center text-lg sm:text-xl font-bold">Sleepers</div>
         
-        <div className="flex gap-16">
+        <div className={`flex ${isMobile ? "gap-6" : "gap-16"}`}>
           {/* Left side berths (SL1-SL5) */}
           <div className="flex flex-col gap-4">
             {berths[0].map((berth, berthIndex) => (
