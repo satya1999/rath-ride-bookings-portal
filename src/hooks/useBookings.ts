@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { bookingService } from "@/services/api";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Booking {
   id: string;
@@ -21,7 +22,34 @@ export function useBookings() {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const data = await bookingService.getBookings();
+      // Get the current user
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      
+      if (!userId) {
+        console.warn("No user ID found, cannot fetch bookings");
+        setLoading(false);
+        return;
+      }
+      
+      // Fetch bookings where the agent_id matches the current user's ID
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          booking_number,
+          status,
+          total_amount,
+          created_at,
+          passengers,
+          trips:trip_id(name, source, destination)
+        `)
+        .eq('agent_id', userId)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        throw error;
+      }
       
       // Format the data for display
       const formattedBookings = data.map(booking => {
@@ -33,9 +61,9 @@ export function useBookings() {
           id: booking.id,
           booking_number: booking.booking_number,
           customer: firstPassenger?.name || "Unknown Customer",
-          agent: booking.agents?.name || "Direct Booking", 
-          trip: `${booking.trips.source} to ${booking.trips.destination}`,
-          date: new Date(booking.created_at).toISOString().split('T')[0],
+          agent: "Current Agent", // We already know it's the current agent
+          trip: `${booking.trips?.source || "Unknown"} to ${booking.trips?.destination || "Unknown"}`,
+          date: new Date(booking.created_at).toLocaleDateString(),
           amount: `₹${booking.total_amount}`,
           status: booking.status
         };
@@ -44,6 +72,8 @@ export function useBookings() {
       setBookings(formattedBookings);
     } catch (error) {
       console.error("Error in useBookings:", error);
+      toast.error("Failed to fetch bookings");
+      setBookings([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -55,17 +85,22 @@ export function useBookings() {
   }, []);
   
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
-    const result = await bookingService.updateBookingStatus(bookingId, newStatus);
-    
-    if (result) {
-      // Update local state
-      setBookings(
-        bookings.map(booking => 
-          booking.id === bookingId ? { ...booking, status: newStatus } : booking
-        )
-      );
+    try {
+      const result = await bookingService.updateBookingStatus(bookingId, newStatus);
       
-      toast.success(`Booking status updated to ${newStatus}`);
+      if (result) {
+        // Update local state
+        setBookings(
+          bookings.map(booking => 
+            booking.id === bookingId ? { ...booking, status: newStatus } : booking
+          )
+        );
+        
+        toast.success(`Booking status updated to ${newStatus}`);
+      }
+    } catch (error) {
+      console.error("Error updating booking status:", error);
+      toast.error("Failed to update booking status");
     }
   };
   
