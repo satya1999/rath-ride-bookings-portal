@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import PageLayout from "@/components/layout/PageLayout";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -17,9 +16,20 @@ import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 
 const DashboardPage = () => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<string>(tabFromUrl || "overview");
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Update active tab when URL changes
+    if (tabFromUrl && ["overview", "bookings", "commissions", "wallet"].includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    } else if (!tabFromUrl) {
+      setActiveTab("overview");
+    }
+  }, [tabFromUrl]);
   
   useEffect(() => {
     // Redirect to login if not authenticated
@@ -47,6 +57,17 @@ const DashboardPage = () => {
 
   const navigateToBooking = () => {
     navigate("/trips");
+  };
+  
+  // Update URL when tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (value === "overview") {
+      // Remove tab parameter for the default tab
+      setSearchParams({});
+    } else {
+      setSearchParams({ tab: value });
+    }
   };
 
   return (
@@ -78,7 +99,12 @@ const DashboardPage = () => {
           />
           
           {/* Dashboard Tabs */}
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="mt-8">
+          <Tabs 
+            defaultValue="overview" 
+            value={activeTab} 
+            onValueChange={handleTabChange} 
+            className="mt-8"
+          >
             <TabsList className="mb-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="bookings">My Bookings</TabsTrigger>
@@ -90,7 +116,7 @@ const DashboardPage = () => {
               <OverviewTab 
                 recentBookings={mockDashboardData.recentBookings}
                 commissionHistory={mockDashboardData.commissionHistory}
-                onTabChange={setActiveTab}
+                onTabChange={handleTabChange}
               />
             </TabsContent>
             

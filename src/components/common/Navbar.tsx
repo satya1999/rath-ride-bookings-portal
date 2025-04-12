@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, User, LogOut, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const location = useLocation();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -43,9 +44,13 @@ const Navbar = () => {
   const handleLogout = async () => {
     await signOut();
   };
+  
+  const isActivePath = (path: string) => {
+    return location.pathname === path;
+  };
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <nav className="bg-background shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -57,10 +62,38 @@ const Navbar = () => {
           
           {/* Desktop menu */}
           <div className="hidden md:ml-6 md:flex md:items-center md:space-x-4">
-            <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium hover:text-rath-red transition-colors">Home</Link>
-            <Link to="/trips" className="px-3 py-2 rounded-md text-sm font-medium hover:text-rath-red transition-colors">Trips</Link>
-            <Link to="/about" className="px-3 py-2 rounded-md text-sm font-medium hover:text-rath-red transition-colors">About Us</Link>
-            <Link to="/contact" className="px-3 py-2 rounded-md text-sm font-medium hover:text-rath-red transition-colors">Contact</Link>
+            <Link 
+              to="/" 
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActivePath('/') ? 'text-rath-red' : 'hover:text-rath-red'
+              }`}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/trips" 
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActivePath('/trips') ? 'text-rath-red' : 'hover:text-rath-red'
+              }`}
+            >
+              Trips
+            </Link>
+            <Link 
+              to="/about" 
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActivePath('/about') ? 'text-rath-red' : 'hover:text-rath-red'
+              }`}
+            >
+              About Us
+            </Link>
+            <Link 
+              to="/contact" 
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActivePath('/contact') ? 'text-rath-red' : 'hover:text-rath-red'
+              }`}
+            >
+              Contact
+            </Link>
             <ThemeToggle />
           </div>
           
@@ -100,6 +133,9 @@ const Navbar = () => {
             <button
               onClick={toggleMenu}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-primary hover:bg-gray-100 focus:outline-none"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -108,32 +144,43 @@ const Navbar = () => {
       </div>
       
       {/* Mobile menu */}
-      <div className={cn("md:hidden", isMenuOpen ? "block" : "hidden")}>
+      <div 
+        id="mobile-menu"
+        className={cn("md:hidden", isMenuOpen ? "block" : "hidden")}
+      >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t">
           <Link 
             to="/" 
-            className="block px-3 py-2 rounded-md text-base font-medium hover:text-rath-red transition-colors"
+            className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+              isActivePath('/') ? 'text-rath-red' : 'hover:text-rath-red'
+            }`}
             onClick={() => setIsMenuOpen(false)}
           >
             Home
           </Link>
           <Link 
             to="/trips" 
-            className="block px-3 py-2 rounded-md text-base font-medium hover:text-rath-red transition-colors"
+            className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+              isActivePath('/trips') ? 'text-rath-red' : 'hover:text-rath-red'
+            }`}
             onClick={() => setIsMenuOpen(false)}
           >
             Trips
           </Link>
           <Link 
             to="/about" 
-            className="block px-3 py-2 rounded-md text-base font-medium hover:text-rath-red transition-colors"
+            className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+              isActivePath('/about') ? 'text-rath-red' : 'hover:text-rath-red'
+            }`}
             onClick={() => setIsMenuOpen(false)}
           >
             About Us
           </Link>
           <Link 
             to="/contact" 
-            className="block px-3 py-2 rounded-md text-base font-medium hover:text-rath-red transition-colors"
+            className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
+              isActivePath('/contact') ? 'text-rath-red' : 'hover:text-rath-red'
+            }`}
             onClick={() => setIsMenuOpen(false)}
           >
             Contact

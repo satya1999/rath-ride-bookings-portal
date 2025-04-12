@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ const DashboardSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const handleSignOut = async () => {
     await signOut();
@@ -34,6 +35,20 @@ const DashboardSidebar = () => {
     { icon: <User className="mr-2 h-4 w-4" />, label: 'My Profile', path: '/profile' }
   ];
   
+  // Check if a path is active
+  const isActivePath = (path: string) => {
+    if (path === '/dashboard') {
+      // For dashboard, check that we're on the dashboard route and not a specific tab
+      return location.pathname === '/dashboard' && !location.search.includes('tab=');
+    } else if (path === '/dashboard?tab=commissions') {
+      // For earnings, check if we're on the commissions tab
+      return location.pathname === '/dashboard' && location.search.includes('tab=commissions');
+    } else {
+      // For other routes, just check the pathname
+      return location.pathname === path;
+    }
+  };
+  
   return (
     <>
       {/* Mobile Toggle Button */}
@@ -42,6 +57,7 @@ const DashboardSidebar = () => {
         size="icon"
         className="md:hidden fixed top-4 left-4 z-50"
         onClick={toggleSidebar}
+        aria-label={isOpen ? "Close menu" : "Open menu"}
       >
         {isOpen ? <X /> : <Menu />}
       </Button>
@@ -64,8 +80,13 @@ const DashboardSidebar = () => {
               <Link 
                 key={index}
                 to={item.path}
-                className="flex items-center px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                className={`flex items-center px-3 py-2 rounded-md transition-colors ${
+                  isActivePath(item.path) 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:bg-accent'
+                }`}
                 onClick={() => setIsOpen(false)}
+                aria-current={isActivePath(item.path) ? 'page' : undefined}
               >
                 {item.icon}
                 <span>{item.label}</span>
