@@ -1,8 +1,10 @@
+
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Trip, Passenger } from "@/types/trip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PassengerForm from "./PassengerForm";
 import PaymentGateway from "./PaymentGateway";
 import TicketPreview from "./TicketPreview";
@@ -12,6 +14,8 @@ interface SeatLayoutData {
   columns: number;
   aisle: number[];
   unavailableSeats: string[];
+  sleeperBerths?: number;
+  upperDeck?: boolean;
 }
 
 interface TripSeatsTabProps {
@@ -22,35 +26,84 @@ interface TripSeatsTabProps {
 }
 
 type BookingStep = "selectSeats" | "passengerDetails" | "payment" | "ticket";
+type DeckType = "lower" | "upper";
 
 const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: TripSeatsTabProps) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<BookingStep>("selectSeats");
   const [passengerData, setPassengerData] = useState<Passenger[]>([]);
+  const [activeDeck, setActiveDeck] = useState<DeckType>("lower");
   
-  const seats: ({ id: string; booked: boolean; selected: boolean } | null)[][] = [];
-  const rowLabels = ["A", "B", "C", "D"];
-  
-  for (let row = 1; row <= seatLayout.rows; row++) {
-    const rowSeats: ({ id: string; booked: boolean; selected: boolean } | null)[] = [];
-    for (let col = 0; col < seatLayout.columns; col++) {
-      const seatId = `${row}${rowLabels[col]}`;
-      const isAisle = seatLayout.aisle.includes(col);
-      const isBooked = seatLayout.unavailableSeats.includes(seatId);
-      const isSelected = selectedSeats.includes(seatId);
+  // Create data for the 1x2 lower deck seating arrangement
+  const createLowerDeckSeats = () => {
+    const seats: ({ id: string; booked: boolean; selected: boolean } | null)[][] = [];
+    const rowLabels = ["A", "B", "C"];
+    
+    for (let row = 1; row <= seatLayout.rows; row++) {
+      const rowSeats: ({ id: string; booked: boolean; selected: boolean } | null)[] = [];
       
-      if (!isAisle) {
-        rowSeats.push({
-          id: seatId,
+      // 1x2 configuration (one seat on left, aisle, two seats on right)
+      for (let col = 0; col < 4; col++) {
+        if (col === 0) {
+          // Left side - single seat
+          const seatId = `L${row}A`;
+          const isBooked = seatLayout.unavailableSeats.includes(seatId);
+          const isSelected = selectedSeats.includes(seatId);
+          
+          rowSeats.push({
+            id: seatId,
+            booked: isBooked,
+            selected: isSelected
+          });
+        } else if (col === 1) {
+          // Aisle
+          rowSeats.push(null);
+        } else {
+          // Right side - two seats
+          const seatId = `L${row}${rowLabels[col-1]}`;
+          const isBooked = seatLayout.unavailableSeats.includes(seatId);
+          const isSelected = selectedSeats.includes(seatId);
+          
+          rowSeats.push({
+            id: seatId,
+            booked: isBooked,
+            selected: isSelected
+          });
+        }
+      }
+      seats.push(rowSeats);
+    }
+    return seats;
+  };
+  
+  // Create data for the upper deck sleeper berths
+  const createUpperDeckBerths = () => {
+    const berths: ({ id: string; booked: boolean; selected: boolean })[][] = [];
+    const berthCount = seatLayout.sleeperBerths || 6; // Default to 6 sleeper berths if not specified
+    
+    // Create two rows of sleeper berths (left and right sides)
+    for (let side = 0; side < 2; side++) {
+      const sideBerths: ({ id: string; booked: boolean; selected: boolean })[] = [];
+      const sidePrefix = side === 0 ? "UL" : "UR"; // Upper Left or Upper Right
+      
+      for (let berth = 1; berth <= berthCount / 2; berth++) {
+        const berthId = `${sidePrefix}${berth}`;
+        const isBooked = seatLayout.unavailableSeats.includes(berthId);
+        const isSelected = selectedSeats.includes(berthId);
+        
+        sideBerths.push({
+          id: berthId,
           booked: isBooked,
           selected: isSelected
         });
-      } else {
-        rowSeats.push(null); // Aisle
       }
+      berths.push(sideBerths);
     }
-    seats.push(rowSeats);
-  }
+    return berths;
+  };
+  
+  const lowerDeckSeats = createLowerDeckSeats();
+  const upperDeckBerths = createUpperDeckBerths();
   
   const handleSeatClick = (seatId: string, isBooked: boolean) => {
     if (isBooked) return;
@@ -114,35 +167,68 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
               </div>
             </div>
             
-            <div className="flex justify-center mb-8">
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <div className="mb-6 flex justify-center">
-                  <div className="w-20 h-12 bg-gray-300 rounded-t-xl flex items-center justify-center text-sm">
-                    Driver
-                  </div>
-                </div>
-                
-                <div className="grid grid-rows-9 gap-4">
-                  {seats.map((row, rowIndex) => (
-                    <div key={rowIndex} className="flex gap-4 justify-center">
-                      {row.map((seat, seatIndex) => (
-                        seat ? (
-                          <div
-                            key={seatIndex}
-                            className={`seat ${seat.booked ? 'seat-booked' : seat.selected ? 'seat-selected' : 'seat-available'}`}
-                            onClick={() => handleSeatClick(seat.id, seat.booked)}
-                          >
-                            {seat.id}
-                          </div>
-                        ) : (
-                          <div key={seatIndex} className="w-10"></div>
-                        )
+            <Tabs value={activeDeck} onValueChange={(value) => setActiveDeck(value as DeckType)} className="w-full mb-6">
+              <TabsList className="grid w-[400px] grid-cols-2 mx-auto">
+                <TabsTrigger value="lower">Lower Deck (1×2)</TabsTrigger>
+                <TabsTrigger value="upper">Upper Deck (Sleeper)</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="lower">
+                <div className="flex justify-center mb-8">
+                  <div className="bg-gray-100 p-4 rounded-lg">
+                    <div className="mb-6 flex justify-center">
+                      <div className="w-20 h-12 bg-gray-300 rounded-t-xl flex items-center justify-center text-sm">
+                        Driver
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-rows-9 gap-4">
+                      {lowerDeckSeats.map((row, rowIndex) => (
+                        <div key={rowIndex} className="flex gap-4 justify-center">
+                          {row.map((seat, seatIndex) => (
+                            seat ? (
+                              <div
+                                key={seatIndex}
+                                className={`seat ${seat.booked ? 'seat-booked' : seat.selected ? 'seat-selected' : 'seat-available'}`}
+                                onClick={() => handleSeatClick(seat.id, seat.booked)}
+                              >
+                                {seat.id}
+                              </div>
+                            ) : (
+                              <div key={seatIndex} className="w-10"></div>
+                            )
+                          ))}
+                        </div>
                       ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
-            </div>
+              </TabsContent>
+              
+              <TabsContent value="upper">
+                <div className="flex justify-center mb-8">
+                  <div className="bg-gray-100 p-4 rounded-lg">
+                    <div className="mb-4 text-center text-sm text-gray-500">Upper Deck Sleeper Berths</div>
+                    
+                    <div className="flex gap-16">
+                      {upperDeckBerths.map((side, sideIndex) => (
+                        <div key={sideIndex} className="flex flex-col gap-4">
+                          {side.map((berth, berthIndex) => (
+                            <div
+                              key={berthIndex}
+                              className={`seat sleeper-berth ${berth.booked ? 'seat-booked' : berth.selected ? 'seat-selected' : 'seat-available'}`}
+                              onClick={() => handleSeatClick(berth.id, berth.booked)}
+                            >
+                              {berth.id}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
             
             <div className="flex justify-center">
               <Button 
