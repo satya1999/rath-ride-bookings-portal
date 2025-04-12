@@ -5,8 +5,6 @@ import * as z from "zod";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   Card, 
   CardContent, 
@@ -15,22 +13,10 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
+import { TextField } from "./form-fields/TextField";
+import { TextareaField } from "./form-fields/TextareaField";
+import { SelectField } from "./form-fields/SelectField";
 
 // Define schema for general settings
 const generalSettingsSchema = z.object({
@@ -41,6 +27,13 @@ const generalSettingsSchema = z.object({
 });
 
 export type GeneralSettingsFormValues = z.infer<typeof generalSettingsSchema>;
+
+const currencyOptions = [
+  { value: "inr", label: "Indian Rupee (₹)" },
+  { value: "usd", label: "US Dollar ($)" },
+  { value: "eur", label: "Euro (€)" },
+  { value: "gbp", label: "British Pound (£)" },
+];
 
 export const GeneralSettings = () => {
   const form = useForm<GeneralSettingsFormValues>({
@@ -69,76 +62,33 @@ export const GeneralSettings = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSave)}>
           <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
+            <TextField
+              form={form}
               name="appName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Application Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This is the name of your application that appears in the title bar and emails
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Application Name"
+              description="This is the name of your application that appears in the title bar and emails"
             />
 
-            <FormField
-              control={form.control}
+            <TextareaField
+              form={form}
               name="companyInfo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company Information</FormLabel>
-                  <FormControl>
-                    <Textarea rows={4} {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This information will be displayed on invoices and receipts
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Company Information"
+              description="This information will be displayed on invoices and receipts"
+              rows={4}
             />
 
-            <FormField
-              control={form.control}
+            <TextField
+              form={form}
               name="supportEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Support Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Support Email"
+              type="email"
             />
 
-            <FormField
-              control={form.control}
+            <SelectField
+              form={form}
               name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Default Currency</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="inr">Indian Rupee (₹)</SelectItem>
-                      <SelectItem value="usd">US Dollar ($)</SelectItem>
-                      <SelectItem value="eur">Euro (€)</SelectItem>
-                      <SelectItem value="gbp">British Pound (£)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Default Currency"
+              options={currencyOptions}
             />
           </CardContent>
           <CardFooter>

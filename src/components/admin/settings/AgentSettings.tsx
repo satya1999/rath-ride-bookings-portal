@@ -5,8 +5,6 @@ import * as z from "zod";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { 
   Card, 
   CardContent, 
@@ -15,15 +13,9 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
+import { NumberField } from "./form-fields/NumberField";
+import { SwitchField } from "./form-fields/SwitchField";
 
 // Define schema for agent settings
 const agentSettingsSchema = z.object({
@@ -64,94 +56,38 @@ export const AgentSettings = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSave)}>
           <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
+            <NumberField
+              form={form}
               name="commissionRate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Default Commission Rate (%)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Default commission rate for new agents
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Default Commission Rate (%)"
+              description="Default commission rate for new agents"
             />
 
-            <FormField
-              control={form.control}
+            <SwitchField
+              form={form}
               name="autoApproval"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between">
-                  <div>
-                    <FormLabel>Automatic Commission Approval</FormLabel>
-                    <FormDescription>
-                      Automatically approve commissions below threshold
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch 
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
+              label="Automatic Commission Approval"
+              description="Automatically approve commissions below threshold"
             />
 
-            <FormField
-              control={form.control}
+            <NumberField
+              form={form}
               name="approvalThreshold"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Auto-Approval Threshold (₹)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Auto-Approval Threshold (₹)"
             />
 
-            <FormField
-              control={form.control}
+            <SwitchField
+              form={form}
               name="selfRegistration"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between">
-                  <div>
-                    <FormLabel>Agent Self-Registration</FormLabel>
-                    <FormDescription>
-                      Allow agents to register themselves via public form
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch 
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
+              label="Agent Self-Registration"
+              description="Allow agents to register themselves via public form"
             />
 
-            <FormField
-              control={form.control}
+            <NumberField
+              form={form}
               name="minBookingReq"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Minimum Booking Requirement</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Minimum monthly bookings required to maintain active status
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Minimum Booking Requirement"
+              description="Minimum monthly bookings required to maintain active status"
             />
           </CardContent>
           <CardFooter>

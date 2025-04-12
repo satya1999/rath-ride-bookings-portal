@@ -5,8 +5,6 @@ import * as z from "zod";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { 
   Card, 
   CardContent, 
@@ -15,15 +13,9 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
+import { SwitchField } from "./form-fields/SwitchField";
+import { NumberField } from "./form-fields/NumberField";
 
 // Define schema for security settings
 const securitySettingsSchema = z.object({
@@ -62,77 +54,31 @@ export const SecuritySettings = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSave)}>
           <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
+            <SwitchField
+              form={form}
               name="twoFactor"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between">
-                  <div>
-                    <FormLabel>Two-Factor Authentication</FormLabel>
-                    <FormDescription>
-                      Enable two-factor authentication for all admin accounts
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch 
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
+              label="Two-Factor Authentication"
+              description="Enable two-factor authentication for all admin accounts"
             />
 
-            <FormField
-              control={form.control}
+            <SwitchField
+              form={form}
               name="passwordExpiry"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between">
-                  <div>
-                    <FormLabel>Password Expiry</FormLabel>
-                    <FormDescription>
-                      Force password change every 90 days
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch 
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
+              label="Password Expiry"
+              description="Force password change every 90 days"
             />
 
-            <FormField
-              control={form.control}
+            <NumberField
+              form={form}
               name="sessionTimeout"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Session Timeout (minutes)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Automatically logout inactive users after this period
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Session Timeout (minutes)"
+              description="Automatically logout inactive users after this period"
             />
 
-            <FormField
-              control={form.control}
+            <NumberField
+              form={form}
               name="loginAttempts"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Login Attempts Before Lockout</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Login Attempts Before Lockout"
             />
           </CardContent>
           <CardFooter>
