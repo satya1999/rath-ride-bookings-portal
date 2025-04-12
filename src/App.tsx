@@ -17,6 +17,14 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
 
+// Admin Routes
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import UsersPage from "./pages/admin/UsersPage";
+import AgentsPage from "./pages/admin/AgentsPage";
+import BookingsPage from "./pages/admin/BookingsPage";
+import CommissionsPage from "./pages/admin/CommissionsPage";
+import SettingsPage from "./pages/admin/SettingsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -37,6 +45,15 @@ const App = () => (
             <Route path="/bookings/:id" element={<BookingDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/users" element={<UsersPage />} />
+            <Route path="/admin/agents" element={<AgentsPage />} />
+            <Route path="/admin/bookings" element={<BookingsPage />} />
+            <Route path="/admin/commissions" element={<CommissionsPage />} />
+            <Route path="/admin/settings" element={<SettingsPage />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
