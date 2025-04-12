@@ -13,6 +13,7 @@ import CommissionsTab from "@/components/dashboard/CommissionsTab";
 import WalletTab from "@/components/dashboard/WalletTab";
 import { mockDashboardData } from "@/components/dashboard/DashboardData";
 import { useAuth } from "@/contexts/AuthContext";
+import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 
 const DashboardPage = () => {
   const { toast } = useToast();
@@ -49,63 +50,69 @@ const DashboardPage = () => {
   };
 
   return (
-    <PageLayout>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="mb-2">Agent Dashboard</h1>
-          <p className="text-gray-600">Manage your bookings and commissions</p>
-        </div>
-        <Button 
-          onClick={navigateToBooking}
-          className="flex items-center gap-2"
-        >
-          <TicketPlus size={18} />
-          Book a new ticket
-        </Button>
-      </div>
+    <div className="flex min-h-screen bg-background">
+      <DashboardSidebar />
       
-      {/* Dashboard Stats */}
-      <DashboardStats 
-        totalCommission={mockDashboardData.totalCommission}
-        pendingCommission={mockDashboardData.pendingCommission}
-        totalBookings={mockDashboardData.totalBookings}
-        walletBalance={mockDashboardData.walletBalance}
-      />
-      
-      {/* Dashboard Tabs */}
-      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="bookings">My Bookings</TabsTrigger>
-          <TabsTrigger value="commissions">Commissions</TabsTrigger>
-          <TabsTrigger value="wallet">Wallet</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview">
-          <OverviewTab 
-            recentBookings={mockDashboardData.recentBookings}
-            commissionHistory={mockDashboardData.commissionHistory}
-            onTabChange={setActiveTab}
-          />
-        </TabsContent>
-        
-        <TabsContent value="bookings">
-          <BookingsTab bookings={mockDashboardData.recentBookings} />
-        </TabsContent>
-        
-        <TabsContent value="commissions">
-          <CommissionsTab commissions={mockDashboardData.commissionHistory} />
-        </TabsContent>
-        
-        <TabsContent value="wallet">
-          <WalletTab 
-            walletBalance={mockDashboardData.walletBalance}
+      <div className="flex-1 md:ml-64">
+        <div className="p-4 md:p-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="mb-2 text-2xl font-bold">Agent Dashboard</h1>
+              <p className="text-gray-600">Manage your bookings and commissions</p>
+            </div>
+            <Button 
+              onClick={navigateToBooking}
+              className="flex items-center gap-2"
+            >
+              <TicketPlus size={18} />
+              Book a new ticket
+            </Button>
+          </div>
+          
+          {/* Dashboard Stats */}
+          <DashboardStats 
+            totalCommission={mockDashboardData.totalCommission}
             pendingCommission={mockDashboardData.pendingCommission}
-            onWithdraw={handleWithdraw}
+            totalBookings={mockDashboardData.totalBookings}
+            walletBalance={mockDashboardData.walletBalance}
           />
-        </TabsContent>
-      </Tabs>
-    </PageLayout>
+          
+          {/* Dashboard Tabs */}
+          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="mt-8">
+            <TabsList className="mb-6">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="bookings">My Bookings</TabsTrigger>
+              <TabsTrigger value="commissions">Commissions</TabsTrigger>
+              <TabsTrigger value="wallet">Wallet</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="overview">
+              <OverviewTab 
+                recentBookings={mockDashboardData.recentBookings}
+                commissionHistory={mockDashboardData.commissionHistory}
+                onTabChange={setActiveTab}
+              />
+            </TabsContent>
+            
+            <TabsContent value="bookings">
+              <BookingsTab bookings={mockDashboardData.recentBookings} />
+            </TabsContent>
+            
+            <TabsContent value="commissions">
+              <CommissionsTab commissions={mockDashboardData.commissionHistory} />
+            </TabsContent>
+            
+            <TabsContent value="wallet">
+              <WalletTab 
+                walletBalance={mockDashboardData.walletBalance}
+                pendingCommission={mockDashboardData.pendingCommission}
+                onWithdraw={handleWithdraw}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </div>
   );
 };
 
