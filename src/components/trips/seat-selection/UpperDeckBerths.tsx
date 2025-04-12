@@ -29,11 +29,6 @@ const UpperDeckBerths = ({ berths, onBerthClick }: UpperDeckBerthsProps) => {
             ))}
           </div>
           
-          {/* Center label */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-90">
-            <span className="text-xl font-bold whitespace-nowrap">Sleepers</span>
-          </div>
-          
           {/* Right side berths (SR1-SR10) in pairs */}
           <div className="flex flex-col gap-4">
             {berths[1].map((berth, berthIndex) => (
