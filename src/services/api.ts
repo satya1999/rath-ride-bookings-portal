@@ -1,5 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
 
 // Agent Service
 export const agentService = {
@@ -186,9 +188,16 @@ export const bookingService = {
   
   createBooking: async (bookingData: any) => {
     try {
+      // Convert passengers and seats to the proper Json type for Supabase
+      const formattedData = {
+        ...bookingData,
+        passengers: bookingData.passengers as Json,
+        seats: bookingData.seats as Json
+      };
+      
       const { data, error } = await supabase
         .from("bookings")
-        .insert(bookingData)
+        .insert(formattedData)
         .select();
         
       if (error) throw error;

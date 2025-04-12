@@ -9,13 +9,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types";
+import { bookingService } from "@/services/api";
 
 interface PaymentGatewayProps {
   passengers: Passenger[];
   fare: number;
   onPaymentSuccess: () => void;
-  tripId: string; // Add trip ID prop
-  selectedSeats: string[]; // Add selected seats prop
+  tripId: string;
+  selectedSeats: string[];
 }
 
 const PaymentGateway = ({ passengers, fare, onPaymentSuccess, tripId, selectedSeats }: PaymentGatewayProps) => {
@@ -33,8 +35,8 @@ const PaymentGateway = ({ passengers, fare, onPaymentSuccess, tripId, selectedSe
       // Calculate total trip fare
       const totalTripFare = passengers.reduce((sum, passenger) => sum + 24500, 0);
       
-      // Prepare booking data
-      const bookingData = {
+      // Create a new booking through the booking service
+      const result = await bookingService.createBooking({
         booking_number: bookingNumber,
         user_id: user?.id || '',
         agent_id: user?.id || '', // Assuming the current user is an agent
@@ -43,16 +45,10 @@ const PaymentGateway = ({ passengers, fare, onPaymentSuccess, tripId, selectedSe
         passengers: passengers,
         total_amount: totalTripFare,
         status: 'confirmed'
-      };
-
-      // Save booking to database
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert(bookingData);
+      });
       
-      if (error) {
-        console.error('Booking error:', error);
-        throw error;
+      if (!result) {
+        throw new Error("Failed to create booking");
       }
       
       // Simulate successful payment
