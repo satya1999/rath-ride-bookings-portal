@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       agents: {
         Row: {
+          address: string | null
           commission_rate: number
           email: string
           id: string
@@ -21,6 +22,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string | null
           commission_rate?: number
           email: string
           id: string
@@ -31,6 +33,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string | null
           commission_rate?: number
           email?: string
           id?: string

@@ -45,7 +45,8 @@ const DashboardPage = () => {
   };
 
   const navigateToBooking = () => {
-    navigate("/trips");
+    // Navigate to trips page with proper history entry
+    navigate("/trips", { replace: false });
   };
 
   return (
