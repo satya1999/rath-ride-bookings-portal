@@ -35,8 +35,8 @@ function App() {
       defaultTheme="system"
       storageKey="vite-react-theme"
     >
-      <AuthProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
@@ -66,9 +66,9 @@ function App() {
             {/* 404 Page */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-        <Toaster />
-      </AuthProvider>
+          <Toaster />
+        </AuthProvider>
+      </BrowserRouter>
     </ThemeProvider>
   )
 }
