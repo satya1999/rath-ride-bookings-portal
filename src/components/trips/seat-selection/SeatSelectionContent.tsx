@@ -22,6 +22,7 @@ interface SeatSelectionContentProps {
   upperDeckBerths: ({ id: string; booked: boolean; selected: boolean })[][];
   handleSeatClick: (seatId: string, isBooked: boolean) => void;
   handleProceedToPassengerDetails: () => void;
+  onSaveLayout?: () => void;
 }
 
 type DeckType = "lower" | "upper";
@@ -31,7 +32,8 @@ const SeatSelectionContent = ({
   lowerDeckSeats,
   upperDeckBerths,
   handleSeatClick,
-  handleProceedToPassengerDetails
+  handleProceedToPassengerDetails,
+  onSaveLayout
 }: SeatSelectionContentProps) => {
   const [activeDeck, setActiveDeck] = React.useState<DeckType>("lower");
   const isMobile = useIsMobile();
@@ -56,7 +58,7 @@ const SeatSelectionContent = ({
         </TabsContent>
         
         <TabsContent value="upper">
-          <UpperDeckBerths berths={upperDeckBerths} onBerthClick={handleSeatClick} />
+          <UpperDeckBerths berths={upperDeckBerths} onBerthClick={handleSeatClick} onSaveLayout={onSaveLayout} />
         </TabsContent>
       </Tabs>
       

@@ -37,10 +37,10 @@
   border: 2px solid #000;
 }
 
-/* Sleeper berth styles */
+/* Sleeper berth styles - making them a bit smaller */
 .sleeper-berth {
-  width: 5rem;
-  height: 7.5rem;
+  width: 4.5rem;
+  height: 6.5rem;
   border-radius: 0.5rem;
   display: flex;
   align-items: center;

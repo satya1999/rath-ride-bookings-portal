@@ -8,6 +8,7 @@ import PaymentGateway from "./PaymentGateway";
 import TicketPreview from "./TicketPreview";
 import SeatSelectionContent from "./seat-selection/SeatSelectionContent";
 import { useSeatLayout } from "./seat-selection/useSeatLayout";
+import { toast } from "sonner";
 
 interface SeatLayoutData {
   rows: number;
@@ -28,7 +29,7 @@ interface TripSeatsTabProps {
 type BookingStep = "selectSeats" | "passengerDetails" | "payment" | "ticket";
 
 const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: TripSeatsTabProps) => {
-  const { toast } = useToast();
+  const { toast: useToastHook } = useToast();
   const [currentStep, setCurrentStep] = useState<BookingStep>("selectSeats");
   const [passengerData, setPassengerData] = useState<Passenger[]>([]);
   
@@ -40,7 +41,7 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
   
   const handleProceedToPassengerDetails = () => {
     if (selectedSeats.length === 0) {
-      toast({
+      useToastHook({
         title: "No seats selected",
         description: "Please select at least one seat to proceed.",
         variant: "destructive",
@@ -60,6 +61,21 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
     setCurrentStep("ticket");
   };
 
+  const handleSaveLayout = () => {
+    const layoutData = {
+      name: "1X2 Bus Sleeper Layout",
+      type: "sleeper",
+      configuration: {
+        lowerDeckSeats,
+        upperDeckBerths
+      }
+    };
+    
+    localStorage.setItem('lastBusLayout', JSON.stringify(layoutData));
+    
+    toast.success("1X2 Bus Layout saved successfully. View it in the admin panel.");
+  };
+
   const totalAdvanceAmount = passengerData.reduce((sum, passenger) => 
     sum + (passenger.advanceAmount || 2000), 0);
   
@@ -73,6 +89,7 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
             upperDeckBerths={upperDeckBerths}
             handleSeatClick={handleSeatClick}
             handleProceedToPassengerDetails={handleProceedToPassengerDetails}
+            onSaveLayout={handleSaveLayout}
           />
         )}
         

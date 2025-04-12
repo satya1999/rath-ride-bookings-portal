@@ -1,17 +1,46 @@
 
 import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { Save } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface UpperDeckBerthsProps {
   berths: ({ id: string; booked: boolean; selected: boolean })[][];
   onBerthClick: (berthId: string, isBooked: boolean) => void;
+  onSaveLayout?: () => void;
 }
 
-const UpperDeckBerths = ({ berths, onBerthClick }: UpperDeckBerthsProps) => {
+const UpperDeckBerths = ({ berths, onBerthClick, onSaveLayout }: UpperDeckBerthsProps) => {
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+  
+  const handleSaveLayout = () => {
+    if (onSaveLayout) {
+      onSaveLayout();
+    } else {
+      // If no handler is provided, use the default save function
+      const layoutData = {
+        name: "1X2 Bus Sleeper Layout",
+        type: "sleeper",
+        configuration: {
+          upperDeckBerths: berths,
+          // We would include lowerDeckSeats here in a full implementation
+        }
+      };
+      
+      // Store in local storage for now
+      localStorage.setItem('lastBusLayout', JSON.stringify(layoutData));
+      
+      toast({
+        title: "Layout saved",
+        description: "The 1X2 Bus Layout has been saved. You can view it in the admin panel.",
+      });
+    }
+  };
   
   return (
-    <div className="flex justify-center mb-8">
+    <div className="flex flex-col items-center mb-8">
       <div className="bg-gray-100 p-4 sm:p-6 rounded-lg">
         <div className="mb-6 text-center text-lg sm:text-xl font-bold">1X2 Push Back Seat</div>
         
@@ -60,6 +89,15 @@ const UpperDeckBerths = ({ berths, onBerthClick }: UpperDeckBerthsProps) => {
           </div>
         </div>
       </div>
+      
+      {/* Save Layout Button */}
+      <Button 
+        className="mt-4 flex items-center gap-2" 
+        onClick={handleSaveLayout}
+      >
+        <Save size={16} />
+        Save as 1X2 Bus Layout
+      </Button>
     </div>
   );
 };
