@@ -34,10 +34,10 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
   const [passengerData, setPassengerData] = useState<Passenger[]>([]);
   const [activeDeck, setActiveDeck] = useState<DeckType>("lower");
   
-  // Create data for the 1x2 lower deck seating arrangement
+  // Create data for the 1x2 lower deck seating arrangement with simple numbering
   const createLowerDeckSeats = () => {
     const seats: ({ id: string; booked: boolean; selected: boolean } | null)[][] = [];
-    const rowLabels = ["A", "B", "C"];
+    let seatNumber = 1;
     
     for (let row = 1; row <= seatLayout.rows; row++) {
       const rowSeats: ({ id: string; booked: boolean; selected: boolean } | null)[] = [];
@@ -46,7 +46,7 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
       for (let col = 0; col < 4; col++) {
         if (col === 0) {
           // Left side - single seat
-          const seatId = `L${row}A`;
+          const seatId = String(seatNumber);
           const isBooked = seatLayout.unavailableSeats.includes(seatId);
           const isSelected = selectedSeats.includes(seatId);
           
@@ -55,12 +55,13 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
             booked: isBooked,
             selected: isSelected
           });
+          seatNumber++;
         } else if (col === 1) {
           // Aisle
           rowSeats.push(null);
         } else {
           // Right side - two seats
-          const seatId = `L${row}${rowLabels[col-1]}`;
+          const seatId = String(seatNumber);
           const isBooked = seatLayout.unavailableSeats.includes(seatId);
           const isSelected = selectedSeats.includes(seatId);
           
@@ -69,6 +70,7 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
             booked: isBooked,
             selected: isSelected
           });
+          seatNumber++;
         }
       }
       seats.push(rowSeats);
@@ -76,18 +78,18 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
     return seats;
   };
   
-  // Create data for the upper deck sleeper berths
+  // Create data for the upper deck sleeper berths with simple numbering
   const createUpperDeckBerths = () => {
     const berths: ({ id: string; booked: boolean; selected: boolean })[][] = [];
-    const berthCount = seatLayout.sleeperBerths || 6; // Default to 6 sleeper berths if not specified
+    const berthCount = seatLayout.sleeperBerths || 10; // 5 on each side
+    let seatNumber = 28; // Start numbering after the lower deck seats
     
     // Create two rows of sleeper berths (left and right sides)
     for (let side = 0; side < 2; side++) {
       const sideBerths: ({ id: string; booked: boolean; selected: boolean })[] = [];
-      const sidePrefix = side === 0 ? "UL" : "UR"; // Upper Left or Upper Right
       
       for (let berth = 1; berth <= berthCount / 2; berth++) {
-        const berthId = `${sidePrefix}${berth}`;
+        const berthId = String(seatNumber);
         const isBooked = seatLayout.unavailableSeats.includes(berthId);
         const isSelected = selectedSeats.includes(berthId);
         
@@ -96,6 +98,7 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
           booked: isBooked,
           selected: isSelected
         });
+        seatNumber++;
       }
       berths.push(sideBerths);
     }

@@ -54,13 +54,13 @@ const mockTripData = {
   ]
 };
 
-// Updated seat layout data for 1x2 configuration with upper sleeper deck
+// Updated seat layout data with simple numerical seat numbering
 const seatLayout = {
   rows: 9,
   columns: 3,
   aisle: [1], // Column indices that represent the aisle
-  unavailableSeats: ["L1A", "L3B", "L5C", "L7B", "L9A", "UL2", "UR3"], // Already booked seats
-  sleeperBerths: 6, // 3 on each side
+  unavailableSeats: ["1", "8", "15", "20", "27", "32", "35", "41"], // Already booked seats
+  sleeperBerths: 10, // 5 on each side
   upperDeck: true
 };
 
