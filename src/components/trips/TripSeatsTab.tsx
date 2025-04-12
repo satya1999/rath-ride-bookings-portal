@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,6 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
   const [currentStep, setCurrentStep] = useState<BookingStep>("selectSeats");
   const [passengerData, setPassengerData] = useState<Passenger[]>([]);
   
-  // Generate seat layout
   const seats: ({ id: string; booked: boolean; selected: boolean } | null)[][] = [];
   const rowLabels = ["A", "B", "C", "D"];
   
@@ -88,7 +86,6 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
     setCurrentStep("ticket");
   };
 
-  // Calculate total advance amount from all passengers
   const totalAdvanceAmount = passengerData.reduce((sum, passenger) => 
     sum + (passenger.advanceAmount || 2000), 0);
   
