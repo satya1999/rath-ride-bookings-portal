@@ -15,6 +15,7 @@ interface BusLayout {
   type: string;
   createdAt: string;
   status: "active" | "inactive";
+  configuration?: any;
 }
 
 const BusLayoutsPage = () => {
@@ -25,6 +26,11 @@ const BusLayoutsPage = () => {
       type: "sleeper",
       createdAt: "2023-08-15",
       status: "active" as const,
+      configuration: { 
+        upperDeck: true, 
+        lowerDeck: true,
+        seats: 38
+      }
     },
     {
       id: "2",
@@ -32,6 +38,11 @@ const BusLayoutsPage = () => {
       type: "seater",
       createdAt: "2023-09-22",
       status: "active" as const,
+      configuration: {
+        upperDeck: false,
+        lowerDeck: true,
+        seats: 45
+      }
     },
     {
       id: "3",
@@ -39,6 +50,11 @@ const BusLayoutsPage = () => {
       type: "semi-sleeper",
       createdAt: "2023-07-01",
       status: "inactive" as const,
+      configuration: {
+        upperDeck: false,
+        lowerDeck: true,
+        seats: 40
+      }
     },
     {
       id: "4",
@@ -46,6 +62,12 @@ const BusLayoutsPage = () => {
       type: "seater",
       createdAt: "2023-10-05",
       status: "active" as const,
+      configuration: {
+        upperDeck: false,
+        lowerDeck: true,
+        layout: "2x2",
+        seats: 40
+      }
     },
   ]);
 
@@ -66,6 +88,7 @@ const BusLayoutsPage = () => {
                 type: parsedLayout.type || "sleeper",
                 createdAt: new Date().toISOString().split('T')[0],
                 status: "active" as const,
+                configuration: parsedLayout.configuration
               }
             ]);
           }
@@ -78,13 +101,26 @@ const BusLayoutsPage = () => {
 
   const handleAddLayout = (layoutType: string) => {
     let layoutName = "";
+    let configuration = {};
     
     switch(layoutType) {
       case "1x2-sleeper":
         layoutName = "1X2 Bus Sleeper Layout";
+        configuration = {
+          upperDeck: true,
+          lowerDeck: false,
+          layout: "1x2",
+          type: "sleeper"
+        };
         break;
       case "2x2-seater":
         layoutName = "2X2 Standard Seater Layout";
+        configuration = {
+          upperDeck: false,
+          lowerDeck: true,
+          layout: "2x2",
+          type: "seater"
+        };
         break;
       default:
         layoutName = "Custom Bus Layout";
@@ -97,10 +133,27 @@ const BusLayoutsPage = () => {
       type: layoutType.includes("sleeper") ? "sleeper" : "seater",
       createdAt: new Date().toISOString().split('T')[0],
       status: "active" as const,
+      configuration
     };
     
     setBusLayouts(prev => [...prev, newLayout]);
     toast.success(`${layoutName} added successfully`);
+  };
+  
+  const handleLayoutDelete = (id: string) => {
+    setBusLayouts(prev => prev.filter(layout => layout.id !== id));
+    // In a real app, you would also delete from the backend
+  };
+  
+  const handleLayoutUpdate = (id: string, updatedData: Partial<BusLayout>) => {
+    setBusLayouts(prev => 
+      prev.map(layout => 
+        layout.id === id 
+          ? { ...layout, ...updatedData } 
+          : layout
+      )
+    );
+    // In a real app, you would also update in the backend
   };
 
   return (
@@ -134,7 +187,11 @@ const BusLayoutsPage = () => {
         </TabsList>
         
         <TabsContent value="layouts" className="mt-6">
-          <BusLayoutsTable layouts={busLayouts} />
+          <BusLayoutsTable 
+            layouts={busLayouts} 
+            onDelete={handleLayoutDelete}
+            onUpdate={handleLayoutUpdate}
+          />
         </TabsContent>
         
         <TabsContent value="upload" className="mt-6">
@@ -146,6 +203,7 @@ const BusLayoutsPage = () => {
                 type: layout.type,
                 createdAt: new Date().toISOString().split('T')[0],
                 status: "active" as const,
+                configuration: layout.configuration
               }]);
             }} />
             <div className="bg-muted p-6 rounded-lg border border-border">
