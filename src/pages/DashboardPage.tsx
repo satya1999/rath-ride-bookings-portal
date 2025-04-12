@@ -33,17 +33,30 @@ const DashboardPage = () => {
     return null;
   }
   
-  // Format booking data for our components
-  const formattedBookings = bookings.map(booking => ({
-    id: booking.id,
-    tripName: booking.trip,
-    date: booking.date,
-    passengers: 2, // This would need to come from real passenger data
-    amount: parseInt(booking.amount.replace('₹', '').replace(',', ''), 10) || 0,
-    commission: Math.round((parseInt(booking.amount.replace('₹', '').replace(',', ''), 10) || 0) * 0.1),
-    status: booking.status === "completed" ? "completed" : 
-          booking.status === "cancelled" ? "cancelled" : "pending"
-  }));
+  // Format booking data for our components with proper type handling
+  const formattedBookings = bookings.map(booking => {
+    // Convert string status to the expected string literal type
+    let typedStatus: "completed" | "pending" | "cancelled";
+    
+    if (booking.status === "completed") {
+      typedStatus = "completed";
+    } else if (booking.status === "cancelled") {
+      typedStatus = "cancelled";
+    } else {
+      // Default to pending for any other status
+      typedStatus = "pending";
+    }
+    
+    return {
+      id: booking.id,
+      tripName: booking.trip,
+      date: booking.date,
+      passengers: 2, // This would need to come from real passenger data
+      amount: parseInt(booking.amount.replace('₹', '').replace(',', ''), 10) || 0,
+      commission: Math.round((parseInt(booking.amount.replace('₹', '').replace(',', ''), 10) || 0) * 0.1),
+      status: typedStatus
+    };
+  });
 
   return (
     <PageLayout>
