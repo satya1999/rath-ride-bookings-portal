@@ -7,7 +7,7 @@ import { AgentFilters } from "@/components/admin/agents/AgentFilters";
 import { AgentSearch } from "@/components/admin/agents/AgentSearch";
 import { AgentTable } from "@/components/admin/agents/AgentTable";
 import { AddAgentDialog, AddAgentFormValues } from "@/components/admin/agents/AddAgentDialog";
-import { useAgents } from "@/hooks/useAgents";
+import { useAgents, Agent } from "@/hooks/useAgents";
 
 const AgentsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");

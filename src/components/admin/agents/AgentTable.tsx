@@ -10,16 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { AgentActionButtons } from "@/components/admin/agents/AgentActionButtons";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface Agent {
-  id: string;
-  name: string;
-  email: string;
-  bookings: number;
-  commissions: string;
-  status: string;
-  joined: string;
-}
+import { Agent } from "@/hooks/useAgents";
 
 interface AgentTableProps {
   agents: Agent[];
@@ -88,7 +79,7 @@ export const AgentTable = ({ agents, onStatusChange, loading = false }: AgentTab
                   {agent.status}
                 </Badge>
               </TableCell>
-              <TableCell>{new Date(agent.joined || agent.joined_at).toLocaleDateString()}</TableCell>
+              <TableCell>{new Date(agent.joined_at || agent.joined).toLocaleDateString()}</TableCell>
               <TableCell className="text-right">
                 <AgentActionButtons 
                   agent={agent} 

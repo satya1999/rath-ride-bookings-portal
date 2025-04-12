@@ -25,7 +25,8 @@ export function useUsers() {
       // Format the data for display
       const formattedUsers = data.map(user => ({
         id: user.id,
-        name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "Unnamed User",
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
         email: "user@example.com", // We don't get emails from user_profiles directly
         role: user.role,
         status: user.status,

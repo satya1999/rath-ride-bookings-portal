@@ -12,6 +12,7 @@ export interface Agent {
   status: string;
   joined_at: string;
   updated_at: string;
+  joined: string; // Added for compatibility
   bookings?: number;
   commissions?: string;
 }
@@ -27,6 +28,7 @@ export function useAgents() {
       // Transform to the expected format
       const formattedAgents = data.map(agent => ({
         ...agent,
+        joined: agent.joined_at, // Add joined property for compatibility
         bookings: 0, // These would be calculated from actual data
         commissions: "₹0" // These would be calculated from actual data
       }));

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Edit, 
@@ -23,13 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { TextField } from "@/components/admin/settings/form-fields/TextField";
 import { NumberField } from "@/components/admin/settings/form-fields/NumberField";
-
-interface Agent {
-  id: string;
-  name: string;
-  email: string;
-  status: string;
-}
+import { Agent } from "@/hooks/useAgents";
 
 interface AgentActionButtonsProps {
   agent: Agent;
@@ -169,7 +162,6 @@ export const AgentActionButtons = ({ agent, onStatusChange }: AgentActionButtons
         </Button>
       </div>
 
-      {/* Edit Agent Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
@@ -208,7 +200,6 @@ export const AgentActionButtons = ({ agent, onStatusChange }: AgentActionButtons
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <DialogContent>
           <DialogHeader>
