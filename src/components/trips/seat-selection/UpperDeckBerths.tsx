@@ -4,6 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 interface UpperDeckBerthsProps {
   berths: ({ id: string; booked: boolean; selected: boolean })[][];
@@ -13,7 +14,7 @@ interface UpperDeckBerthsProps {
 
 const UpperDeckBerths = ({ berths, onBerthClick, onSaveLayout }: UpperDeckBerthsProps) => {
   const isMobile = useIsMobile();
-  const { toast } = useToast();
+  const { toast: useToastHook } = useToast();
   
   const handleSaveLayout = () => {
     if (onSaveLayout) {
@@ -32,19 +33,17 @@ const UpperDeckBerths = ({ berths, onBerthClick, onSaveLayout }: UpperDeckBerths
       // Store in local storage for now
       localStorage.setItem('lastBusLayout', JSON.stringify(layoutData));
       
-      toast({
-        title: "Layout saved",
-        description: "The 1X2 Bus Layout has been saved. You can view it in the admin panel.",
-      });
+      // Use sonner toast for consistent UI
+      toast.success("1X2 Bus Layout saved successfully. View it in the admin panel.");
     }
   };
   
   return (
     <div className="flex flex-col items-center mb-8">
       <div className="bg-gray-100 p-4 sm:p-6 rounded-lg">
-        <div className="mb-6 text-center text-lg sm:text-xl font-bold">1X2 Push Back Seat</div>
+        <div className="mb-6 text-center text-lg sm:text-xl font-bold">1X2 Push Back Sleeper</div>
         
-        <div className={`relative flex ${isMobile ? "gap-28" : "gap-32"}`}>
+        <div className={`relative flex ${isMobile ? "gap-24" : "gap-28"}`}>
           {/* Left side berths (SL1-SL5) */}
           <div className="flex flex-col gap-4">
             {berths[0].map((berth, berthIndex) => (
@@ -94,6 +93,7 @@ const UpperDeckBerths = ({ berths, onBerthClick, onSaveLayout }: UpperDeckBerths
       <Button 
         className="mt-4 flex items-center gap-2" 
         onClick={handleSaveLayout}
+        variant="secondary"
       >
         <Save size={16} />
         Save as 1X2 Bus Layout

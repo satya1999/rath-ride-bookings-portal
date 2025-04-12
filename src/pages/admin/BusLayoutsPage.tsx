@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { BusLayoutUploader } from "@/components/admin/bus/BusLayoutUploader";
 import { BusLayoutsTable } from "@/components/admin/bus/BusLayoutsTable";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Type definition for bus layouts
 interface BusLayout {
@@ -36,6 +40,13 @@ const BusLayoutsPage = () => {
       createdAt: "2023-07-01",
       status: "inactive" as const,
     },
+    {
+      id: "4",
+      name: "2x2 Standard Seater (40 Seats)",
+      type: "seater",
+      createdAt: "2023-10-05",
+      status: "active" as const,
+    },
   ]);
 
   useEffect(() => {
@@ -65,20 +76,93 @@ const BusLayoutsPage = () => {
     }
   }, []);
 
+  const handleAddLayout = (layoutType: string) => {
+    let layoutName = "";
+    
+    switch(layoutType) {
+      case "1x2-sleeper":
+        layoutName = "1X2 Bus Sleeper Layout";
+        break;
+      case "2x2-seater":
+        layoutName = "2X2 Standard Seater Layout";
+        break;
+      default:
+        layoutName = "Custom Bus Layout";
+    }
+    
+    // Add the new layout
+    const newLayout = {
+      id: (busLayouts.length + 1).toString(),
+      name: layoutName,
+      type: layoutType.includes("sleeper") ? "sleeper" : "seater",
+      createdAt: new Date().toISOString().split('T')[0],
+      status: "active" as const,
+    };
+    
+    setBusLayouts(prev => [...prev, newLayout]);
+    toast.success(`${layoutName} added successfully`);
+  };
+
   return (
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Bus Layouts</h1>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => handleAddLayout("1x2-sleeper")}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Plus size={16} />
+            Add 1X2 Sleeper Layout
+          </Button>
+          <Button 
+            onClick={() => handleAddLayout("2x2-seater")}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Plus size={16} />
+            Add 2X2 Seater Layout
+          </Button>
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="md:col-span-1">
-          <BusLayoutUploader />
-        </div>
-        <div className="md:col-span-2">
+      <Tabs defaultValue="layouts" className="w-full mb-6">
+        <TabsList className="grid w-[400px] grid-cols-2">
+          <TabsTrigger value="layouts">All Layouts</TabsTrigger>
+          <TabsTrigger value="upload">Upload New Layout</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="layouts" className="mt-6">
           <BusLayoutsTable layouts={busLayouts} />
-        </div>
-      </div>
+        </TabsContent>
+        
+        <TabsContent value="upload" className="mt-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <BusLayoutUploader onLayoutAdded={(layout) => {
+              setBusLayouts(prev => [...prev, {
+                id: (prev.length + 1).toString(),
+                name: layout.name,
+                type: layout.type,
+                createdAt: new Date().toISOString().split('T')[0],
+                status: "active" as const,
+              }]);
+            }} />
+            <div className="bg-muted p-6 rounded-lg border border-border">
+              <h3 className="text-lg font-semibold mb-4">Supported Layout Types</h3>
+              <ul className="space-y-2 list-disc pl-5">
+                <li>1X2 Bus Seating with Sleeper (Upper deck)</li>
+                <li>2X2 Standard Seater Configuration</li>
+                <li>2X1 Semi-Sleeper Configuration</li>
+                <li>Custom configurations via JSON upload</li>
+              </ul>
+              <p className="mt-4 text-sm text-muted-foreground">
+                You can also save layouts directly from the seat selection interface when booking a trip.
+              </p>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </AdminLayout>
   );
 };

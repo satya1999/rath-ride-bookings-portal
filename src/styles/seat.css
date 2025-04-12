@@ -39,8 +39,8 @@
 
 /* Sleeper berth styles - making them a bit smaller */
 .sleeper-berth {
-  width: 4.5rem;
-  height: 6.5rem;
+  width: 4rem;
+  height: 5.5rem;
   border-radius: 0.5rem;
   display: flex;
   align-items: center;
@@ -48,4 +48,42 @@
   font-size: 0.875rem;
   font-weight: 500;
   border: 2px solid #000;
+}
+
+/* 2x2 seater layout specific styles */
+.seater-2x2 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.seater-2x2 .seat-row {
+  display: contents;
+}
+
+.seater-2x2 .aisle {
+  grid-column: span 2;
+}
+
+/* 1x2 layout specific styles */
+.seater-1x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr;
+  gap: 0.75rem;
+}
+
+/* Layout container styles */
+.layout-container {
+  padding: 1.5rem;
+  background-color: #f3f4f6;
+  border-radius: 0.75rem;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.layout-title {
+  font-weight: 600;
+  font-size: 1.125rem;
+  text-align: center;
+  margin-bottom: 1rem;
 }

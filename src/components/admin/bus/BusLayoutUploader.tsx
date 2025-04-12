@@ -8,7 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
-export const BusLayoutUploader = () => {
+interface BusLayoutUploaderProps {
+  onLayoutAdded?: (layout: { name: string; type: string }) => void;
+}
+
+export const BusLayoutUploader = ({ onLayoutAdded }: BusLayoutUploaderProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [layoutName, setLayoutName] = useState("");
   const [layoutType, setLayoutType] = useState("sleeper");
@@ -76,6 +80,14 @@ export const BusLayoutUploader = () => {
     setTimeout(() => {
       toast.success(`Bus layout "${layoutName}" uploaded successfully`);
       setUploading(false);
+      
+      if (onLayoutAdded) {
+        onLayoutAdded({
+          name: layoutName,
+          type: layoutType
+        });
+      }
+      
       setFile(null);
       setLayoutName("");
       
@@ -135,6 +147,8 @@ export const BusLayoutUploader = () => {
                 <SelectItem value="seater">Seater</SelectItem>
                 <SelectItem value="sleeper">Sleeper</SelectItem>
                 <SelectItem value="semi-sleeper">Semi-Sleeper</SelectItem>
+                <SelectItem value="1x2-sleeper">1X2 Sleeper</SelectItem>
+                <SelectItem value="2x2-seater">2X2 Seater</SelectItem>
               </SelectContent>
             </Select>
           </div>
