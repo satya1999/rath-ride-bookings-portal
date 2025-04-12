@@ -57,7 +57,7 @@ const DashboardPage = () => {
   };
 
   const navigateToBooking = () => {
-    // Explicitly navigate to the trips page
+    // Navigate to the trips page for booking new tickets
     navigate("/trips");
   };
   

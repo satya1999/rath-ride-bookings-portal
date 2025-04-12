@@ -30,7 +30,7 @@ const DashboardSidebar = () => {
   
   const menuItems = [
     { icon: <LayoutDashboard className="mr-2 h-4 w-4" />, label: 'Dashboard', path: '/dashboard' },
-    { icon: <Ticket className="mr-2 h-4 w-4" />, label: 'My Bookings', path: '/trips' },
+    { icon: <Ticket className="mr-2 h-4 w-4" />, label: 'My Bookings', path: '/dashboard?tab=bookings' },
     { icon: <CircleDollarSign className="mr-2 h-4 w-4" />, label: 'Earnings', path: '/dashboard?tab=commissions' },
     { icon: <User className="mr-2 h-4 w-4" />, label: 'My Profile', path: '/profile' }
   ];
@@ -38,11 +38,12 @@ const DashboardSidebar = () => {
   // Check if a path is active
   const isActivePath = (path: string) => {
     if (path === '/dashboard') {
-      // For dashboard, check that we're on the dashboard route and not a specific tab
+      // For dashboard, check that we're on the dashboard route without any specific tab parameter
       return location.pathname === '/dashboard' && !location.search.includes('tab=');
-    } else if (path === '/dashboard?tab=commissions') {
-      // For earnings, check if we're on the commissions tab
-      return location.pathname === '/dashboard' && location.search.includes('tab=commissions');
+    } else if (path.startsWith('/dashboard?tab=')) {
+      // For tab paths, check if the tab parameter matches
+      const tabName = path.split('=')[1];
+      return location.pathname === '/dashboard' && location.search.includes(`tab=${tabName}`);
     } else {
       // For other routes, just check the pathname
       return location.pathname === path;
