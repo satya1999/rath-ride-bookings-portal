@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LayoutUploadOptions {
   onLayoutAdded?: (layout: { name: string; type: string; configuration?: any }) => void;
@@ -34,27 +35,38 @@ export function useLayoutUpload({ onLayoutAdded }: LayoutUploadOptions) {
 
     setUploading(true);
     
-    setTimeout(() => {
-      toast.success(`Bus layout "${layoutName}" uploaded successfully`);
-      setUploading(false);
+    try {
+      // Generate configuration based on layout type
+      const configuration = generateConfiguration(layoutType);
+      
+      // Save to localStorage for backward compatibility
+      const layoutData = {
+        name: layoutName,
+        type: layoutType,
+        configuration: configuration
+      };
+      
+      localStorage.setItem('lastBusLayout', JSON.stringify(layoutData));
       
       if (onLayoutAdded) {
-        const configuration = generateConfiguration(layoutType);
-        
-        onLayoutAdded({
-          name: layoutName,
-          type: layoutType,
-          configuration: configuration
-        });
+        onLayoutAdded(layoutData);
       }
       
+      toast.success(`Bus layout "${layoutName}" uploaded successfully`);
+      
+      // Clear form
       setFile(null);
       setLayoutName("");
       
       console.log("Layout name:", layoutName);
       console.log("Layout type:", layoutType);
       console.log("File:", file);
-    }, 1500);
+    } catch (error) {
+      console.error("Error uploading layout:", error);
+      toast.error("Failed to upload layout");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return {

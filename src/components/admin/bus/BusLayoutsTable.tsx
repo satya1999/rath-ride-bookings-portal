@@ -16,16 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
-// Bus layout type definition
-interface BusLayout {
-  id: string;
-  name: string;
-  type: string;
-  createdAt: string;
-  status: "active" | "inactive";
-  configuration?: any;
-}
+import { BusLayout } from "@/hooks/useBusLayouts";
 
 interface BusLayoutsTableProps {
   layouts: BusLayout[];
@@ -34,40 +25,28 @@ interface BusLayoutsTableProps {
 }
 
 export const BusLayoutsTable = ({ layouts, onDelete, onUpdate }: BusLayoutsTableProps) => {
-  const [currentLayouts, setCurrentLayouts] = useState<BusLayout[]>(layouts);
   const [viewLayout, setViewLayout] = useState<BusLayout | null>(null);
   const [editLayout, setEditLayout] = useState<BusLayout | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{id: string; name: string} | null>(null);
   const [editForm, setEditForm] = useState({ name: "", type: "" });
 
   const handleToggleStatus = (id: string) => {
-    setCurrentLayouts(prev => 
-      prev.map(layout => 
-        layout.id === id 
-          ? { ...layout, status: layout.status === "active" ? "inactive" : "active" } 
-          : layout
-      )
-    );
+    // Find the layout and get its current status
+    const layout = layouts.find(l => l.id === id);
+    if (!layout) return;
     
-    // Find the layout and get its new status
-    const layout = currentLayouts.find(l => l.id === id);
-    const newStatus = layout?.status === "active" ? "inactive" : "active";
+    const newStatus = layout.status === "active" ? "inactive" : "active";
     
-    if (onUpdate && layout) {
+    if (onUpdate) {
       onUpdate(id, { status: newStatus });
     }
-    
-    toast.success(`Layout ${layout?.name} ${newStatus === "active" ? "activated" : "deactivated"} successfully`);
   };
 
   const handleDelete = (id: string, name: string) => {
-    setCurrentLayouts(prev => prev.filter(layout => layout.id !== id));
-    
     if (onDelete) {
       onDelete(id);
     }
     
-    toast.success(`Layout "${name}" deleted successfully`);
     setDeleteConfirm(null);
   };
 
@@ -86,14 +65,6 @@ export const BusLayoutsTable = ({ layouts, onDelete, onUpdate }: BusLayoutsTable
   const handleUpdate = () => {
     if (!editLayout) return;
     
-    setCurrentLayouts(prev => 
-      prev.map(layout => 
-        layout.id === editLayout.id 
-          ? { ...layout, name: editForm.name, type: editForm.type } 
-          : layout
-      )
-    );
-    
     if (onUpdate) {
       onUpdate(editLayout.id, { 
         name: editForm.name, 
@@ -101,7 +72,6 @@ export const BusLayoutsTable = ({ layouts, onDelete, onUpdate }: BusLayoutsTable
       });
     }
     
-    toast.success(`Layout "${editForm.name}" updated successfully`);
     setEditLayout(null);
   };
 
@@ -123,14 +93,14 @@ export const BusLayoutsTable = ({ layouts, onDelete, onUpdate }: BusLayoutsTable
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentLayouts.length === 0 ? (
+            {layouts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   No layouts found. Upload a new layout or add a predefined one.
                 </TableCell>
               </TableRow>
             ) : (
-              currentLayouts.map((layout) => (
+              layouts.map((layout) => (
                 <TableRow key={layout.id}>
                   <TableCell className="font-medium">{layout.name}</TableCell>
                   <TableCell>

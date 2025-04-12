@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Type definition for bus layouts
 export interface BusLayout {
@@ -13,85 +14,47 @@ export interface BusLayout {
 }
 
 export const useBusLayouts = () => {
-  const [busLayouts, setBusLayouts] = useState<BusLayout[]>([
-    {
-      id: "1",
-      name: "Volvo 9400 Sleeper (38 Seats)",
-      type: "sleeper",
-      createdAt: "2023-08-15",
-      status: "active" as const,
-      configuration: { 
-        upperDeck: true, 
-        lowerDeck: true,
-        seats: 38
-      }
-    },
-    {
-      id: "2",
-      name: "Mercedes Benz 2441 (45 Seats)",
-      type: "seater",
-      createdAt: "2023-09-22",
-      status: "active" as const,
-      configuration: {
-        upperDeck: false,
-        lowerDeck: true,
-        seats: 45
-      }
-    },
-    {
-      id: "3",
-      name: "Scania Metrolink (40 Seats)",
-      type: "semi-sleeper",
-      createdAt: "2023-07-01",
-      status: "inactive" as const,
-      configuration: {
-        upperDeck: false,
-        lowerDeck: true,
-        seats: 40
-      }
-    },
-    {
-      id: "4",
-      name: "2x2 Standard Seater (40 Seats)",
-      type: "seater",
-      createdAt: "2023-10-05",
-      status: "active" as const,
-      configuration: {
-        upperDeck: false,
-        lowerDeck: true,
-        layout: "2x2",
-        seats: 40
-      }
-    },
-  ]);
+  const [busLayouts, setBusLayouts] = useState<BusLayout[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch bus layouts from Supabase
   useEffect(() => {
-    const lastLayout = localStorage.getItem('lastBusLayout');
-    if (lastLayout) {
-      try {
-        const parsedLayout = JSON.parse(lastLayout);
-        if (parsedLayout && parsedLayout.name) {
-          if (!busLayouts.some(layout => layout.name === parsedLayout.name)) {
-            setBusLayouts(prev => [
-              ...prev,
-              {
-                id: (prev.length + 1).toString(),
-                name: parsedLayout.name,
-                type: parsedLayout.type || "sleeper",
-                createdAt: new Date().toISOString().split('T')[0],
-                status: "active" as const,
-                configuration: parsedLayout.configuration
-              }
-            ]);
-          }
-        }
-      } catch (error) {
-        console.error("Error parsing saved layout:", error);
-      }
-    }
+    fetchBusLayouts();
   }, []);
 
-  const handleAddLayout = (layoutType: string) => {
+  const fetchBusLayouts = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('bus_layouts')
+        .select('*');
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        // Transform data to match our BusLayout interface
+        const formattedLayouts: BusLayout[] = data.map(layout => ({
+          id: layout.id,
+          name: layout.name,
+          type: layout.type,
+          createdAt: layout.created_at,
+          status: layout.status as "active" | "inactive",
+          configuration: layout.configuration
+        }));
+        
+        setBusLayouts(formattedLayouts);
+      }
+    } catch (error) {
+      console.error("Error fetching bus layouts:", error);
+      toast.error("Failed to load bus layouts");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddLayout = async (layoutType: string) => {
     let layoutName = "";
     let configuration = {};
     
@@ -118,46 +81,122 @@ export const useBusLayouts = () => {
         layoutName = "Custom Bus Layout";
     }
     
-    const newLayout = {
-      id: (busLayouts.length + 1).toString(),
-      name: layoutName,
-      type: layoutType.includes("sleeper") ? "sleeper" : "seater",
-      createdAt: new Date().toISOString().split('T')[0],
-      status: "active" as const,
-      configuration
-    };
-    
-    setBusLayouts(prev => [...prev, newLayout]);
-    toast.success(`${layoutName} added successfully`);
+    try {
+      const { data, error } = await supabase
+        .from('bus_layouts')
+        .insert({
+          name: layoutName,
+          type: layoutType.includes("sleeper") ? "sleeper" : "seater",
+          configuration,
+          status: "active"
+        })
+        .select();
+      
+      if (error) throw error;
+      
+      if (data && data[0]) {
+        const newLayout: BusLayout = {
+          id: data[0].id,
+          name: data[0].name,
+          type: data[0].type,
+          createdAt: data[0].created_at,
+          status: data[0].status as "active" | "inactive",
+          configuration: data[0].configuration
+        };
+        
+        setBusLayouts(prev => [...prev, newLayout]);
+        toast.success(`${layoutName} added successfully`);
+      }
+    } catch (error) {
+      console.error("Error adding layout:", error);
+      toast.error("Failed to add layout");
+    }
   };
   
-  const handleLayoutDelete = (id: string) => {
-    setBusLayouts(prev => prev.filter(layout => layout.id !== id));
+  const handleLayoutDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('bus_layouts')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      setBusLayouts(prev => prev.filter(layout => layout.id !== id));
+      toast.success("Layout deleted successfully");
+    } catch (error) {
+      console.error("Error deleting layout:", error);
+      toast.error("Failed to delete layout");
+    }
   };
   
-  const handleLayoutUpdate = (id: string, updatedData: Partial<BusLayout>) => {
-    setBusLayouts(prev => 
-      prev.map(layout => 
-        layout.id === id 
-          ? { ...layout, ...updatedData } 
-          : layout
-      )
-    );
+  const handleLayoutUpdate = async (id: string, updatedData: Partial<BusLayout>) => {
+    try {
+      // Convert from our frontend model to the database model
+      const dbData: any = {
+        ...(updatedData.name && { name: updatedData.name }),
+        ...(updatedData.type && { type: updatedData.type }),
+        ...(updatedData.status && { status: updatedData.status }),
+        ...(updatedData.configuration && { configuration: updatedData.configuration })
+      };
+      
+      const { error } = await supabase
+        .from('bus_layouts')
+        .update(dbData)
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      setBusLayouts(prev => 
+        prev.map(layout => 
+          layout.id === id 
+            ? { ...layout, ...updatedData } 
+            : layout
+        )
+      );
+      
+      toast.success("Layout updated successfully");
+    } catch (error) {
+      console.error("Error updating layout:", error);
+      toast.error("Failed to update layout");
+    }
   };
 
-  const handleLayoutAdded = (layout: { name: string; type: string; configuration?: any }) => {
-    setBusLayouts(prev => [...prev, {
-      id: (prev.length + 1).toString(),
-      name: layout.name,
-      type: layout.type,
-      createdAt: new Date().toISOString().split('T')[0],
-      status: "active" as const,
-      configuration: layout.configuration || {}
-    }]);
+  const handleLayoutAdded = async (layout: { name: string; type: string; configuration?: any }) => {
+    try {
+      const { data, error } = await supabase
+        .from('bus_layouts')
+        .insert({
+          name: layout.name,
+          type: layout.type,
+          configuration: layout.configuration || {},
+          status: "active"
+        })
+        .select();
+        
+      if (error) throw error;
+      
+      if (data && data[0]) {
+        const newLayout: BusLayout = {
+          id: data[0].id,
+          name: data[0].name,
+          type: data[0].type,
+          createdAt: data[0].created_at,
+          status: data[0].status as "active" | "inactive",
+          configuration: data[0].configuration
+        };
+        
+        setBusLayouts(prev => [...prev, newLayout]);
+      }
+    } catch (error) {
+      console.error("Error adding layout:", error);
+      toast.error("Failed to add layout");
+    }
   };
 
   return {
     busLayouts,
+    loading,
     handleAddLayout,
     handleLayoutDelete,
     handleLayoutUpdate,
