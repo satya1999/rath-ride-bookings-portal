@@ -19,7 +19,7 @@ const PassengerTabs = ({
   // Generate passenger tabs
   const passengerTabs = passengers.map((_, index) => ({
     value: index.toString(),
-    label: `Passenger ${index + 1} - Seat ${selectedSeats[index]}`
+    label: `Passenger ${index + 1}${selectedSeats[index] ? ` - Seat ${selectedSeats[index]}` : ''}`
   }));
 
   return (

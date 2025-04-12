@@ -1,12 +1,12 @@
 
 import { useRef, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Trip, Passenger } from "@/types/trip";
 import { Download, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import TicketCard from "./ticket/TicketCard";
 
 interface TicketPreviewProps {
   trip: Trip;
@@ -155,100 +155,11 @@ const TicketPreview = ({ trip, passengers }: TicketPreviewProps) => {
         </div>
       )}
 
-      {/* Ticket Container */}
-      <Card className="border-2 border-dashed border-gray-300">
-        <CardContent className="p-0">
-          <div ref={ticketRef} className="p-6 bg-white">
-            {/* Ticket Header */}
-            <div className="bg-purple-600 text-white p-4 rounded-t-lg">
-              <div className="flex justify-between">
-                <h3 className="text-xl font-bold">E-Ticket</h3>
-                <p className="text-sm">{trip.formattedDate}</p>
-              </div>
-            </div>
-            
-            {/* Trip Details */}
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-xl font-bold mb-2">{trip.title}</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">From</p>
-                  <p className="font-medium">{trip.from}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">To</p>
-                  <p className="font-medium">{trip.to}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Departure</p>
-                  <p className="font-medium">{trip.departureTime}, {trip.formattedDate}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Bus Type</p>
-                  <p className="font-medium">{trip.busType}</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Passenger Details */}
-            <div className="p-4 border-b border-gray-200">
-              <h4 className="font-medium mb-2">Passenger Details</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Name</p>
-                  <p className="font-medium">{currentPassenger.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Mobile</p>
-                  <p className="font-medium">{currentPassenger.mobile}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Age</p>
-                  <p className="font-medium">{currentPassenger.age}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Seat Number</p>
-                  <p className="font-medium">{currentPassenger.seatNumber}</p>
-                </div>
-                {currentPassenger.bloodGroup && (
-                  <div>
-                    <p className="text-sm text-gray-500">Blood Group</p>
-                    <p className="font-medium">{currentPassenger.bloodGroup}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Fare & Barcode */}
-            <div className="p-4 flex justify-between items-center">
-              <div>
-                <p className="text-sm text-gray-500">Total Fare</p>
-                <p className="text-xl font-bold">₹{trip.fare}</p>
-                <div className="mt-1">
-                  <p className="text-xs text-gray-500">Advance Paid</p>
-                  <p className="text-sm">₹{currentPassenger.advanceAmount || 2000}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Balance Due</p>
-                  <p className="text-sm">₹{trip.fare - (currentPassenger.advanceAmount || 2000)}</p>
-                </div>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-gray-500 mb-1">Ticket ID</p>
-                <div className="bg-gray-200 py-2 px-4 rounded font-mono text-sm">
-                  {`TKT${trip.id}${currentPassenger.seatNumber}`}
-                </div>
-              </div>
-            </div>
-            
-            {/* Footer */}
-            <div className="bg-gray-50 p-4 text-center text-xs text-gray-500 rounded-b-lg">
-              This e-ticket is valid with a photo ID. Please be at the pick-up point 30 minutes before departure.
-              The balance amount is to be paid on the day of journey before boarding.
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <TicketCard 
+        trip={trip} 
+        passenger={currentPassenger} 
+        innerRef={ticketRef} 
+      />
     </div>
   );
 };
