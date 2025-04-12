@@ -16,6 +16,7 @@ import * as z from "zod";
 
 import { TextField } from "@/components/admin/settings/form-fields/TextField";
 import { NumberField } from "@/components/admin/settings/form-fields/NumberField";
+import { toast } from "sonner";
 
 // Form schema
 const addAgentSchema = z.object({
@@ -28,11 +29,12 @@ const addAgentSchema = z.object({
 export type AddAgentFormValues = z.infer<typeof addAgentSchema>;
 
 interface AddAgentDialogProps {
-  onAddAgent: (data: AddAgentFormValues) => void;
+  onAddAgent: (data: AddAgentFormValues) => Promise<boolean>;
 }
 
 export const AddAgentDialog = ({ onAddAgent }: AddAgentDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<AddAgentFormValues>({
     resolver: zodResolver(addAgentSchema),
@@ -44,10 +46,20 @@ export const AddAgentDialog = ({ onAddAgent }: AddAgentDialogProps) => {
     }
   });
 
-  const handleSubmit = (data: AddAgentFormValues) => {
-    onAddAgent(data);
-    form.reset();
-    setIsOpen(false);
+  const handleSubmit = async (data: AddAgentFormValues) => {
+    setIsSubmitting(true);
+    try {
+      const success = await onAddAgent(data);
+      if (success) {
+        form.reset();
+        setIsOpen(false);
+      }
+    } catch (error) {
+      console.error("Error adding agent:", error);
+      toast.error("Failed to create agent");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -86,7 +98,13 @@ export const AddAgentDialog = ({ onAddAgent }: AddAgentDialogProps) => {
               name="commission"
               label="Commission Rate (%)"
             />
-            <Button type="submit" className="w-full">Create Agent</Button>
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Create Agent"}
+            </Button>
           </form>
         </Form>
       </DialogContent>

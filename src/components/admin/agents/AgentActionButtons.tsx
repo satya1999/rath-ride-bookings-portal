@@ -17,14 +17,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { TextField } from "@/components/admin/settings/form-fields/TextField";
-import { NumberField } from "@/components/admin/settings/form-fields/NumberField";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { TextField } from "@/components/admin/settings/form-fields/TextField";
+import { NumberField } from "@/components/admin/settings/form-fields/NumberField";
 
 interface Agent {
   id: string;
@@ -48,6 +46,7 @@ const editAgentSchema = z.object({
 export const AgentActionButtons = ({ agent, onStatusChange }: AgentActionButtonsProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const form = useForm<z.infer<typeof editAgentSchema>>({
     resolver: zodResolver(editAgentSchema),
@@ -59,11 +58,19 @@ export const AgentActionButtons = ({ agent, onStatusChange }: AgentActionButtons
     }
   });
 
-  const handleStatusChange = (newStatus: string) => {
-    if (onStatusChange) {
-      onStatusChange(agent.id, newStatus);
-    } else {
-      toast.success(`Agent ${agent.name} ${newStatus === "active" ? "activated" : "deactivated"}`);
+  const handleStatusChange = async (newStatus: string) => {
+    setIsProcessing(true);
+    try {
+      if (onStatusChange) {
+        await onStatusChange(agent.id, newStatus);
+      } else {
+        toast.success(`Agent ${agent.name} ${newStatus === "active" ? "activated" : "deactivated"}`);
+      }
+    } catch (error) {
+      console.error("Error changing status:", error);
+      toast.error("Failed to change agent status");
+    } finally {
+      setIsProcessing(false);
     }
   };
   
@@ -75,27 +82,59 @@ export const AgentActionButtons = ({ agent, onStatusChange }: AgentActionButtons
     toast.info(`Viewing commission details for ${agent.name}`);
   };
   
-  const handleEditSubmit = (data: z.infer<typeof editAgentSchema>) => {
-    toast.success(`Agent ${agent.name} updated successfully`);
-    console.log("Updated agent data:", data);
-    setIsEditOpen(false);
+  const handleEditSubmit = async (data: z.infer<typeof editAgentSchema>) => {
+    setIsProcessing(true);
+    try {
+      // Implement API call to update agent
+      toast.success(`Agent ${agent.name} updated successfully`);
+      setIsEditOpen(false);
+    } catch (error) {
+      console.error("Error updating agent:", error);
+      toast.error("Failed to update agent");
+    } finally {
+      setIsProcessing(false);
+    }
   };
   
-  const handleDelete = () => {
-    toast.success(`Agent ${agent.name} deleted successfully`);
-    setIsDeleteOpen(false);
+  const handleDelete = async () => {
+    setIsProcessing(true);
+    try {
+      // Implement API call to delete agent
+      toast.success(`Agent ${agent.name} deleted successfully`);
+      setIsDeleteOpen(false);
+    } catch (error) {
+      console.error("Error deleting agent:", error);
+      toast.error("Failed to delete agent");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <>
       <div className="flex items-center justify-end gap-2">
-        <Button variant="ghost" size="icon" onClick={handleViewAgent}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleViewAgent}
+          disabled={isProcessing}
+        >
           <Eye className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={handleCommissions}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleCommissions}
+          disabled={isProcessing}
+        >
           <CreditCard className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => setIsEditOpen(true)}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setIsEditOpen(true)}
+          disabled={isProcessing}
+        >
           <Edit className="h-4 w-4" />
         </Button>
         {agent.status === "active" ? (
@@ -104,6 +143,7 @@ export const AgentActionButtons = ({ agent, onStatusChange }: AgentActionButtons
             size="icon" 
             className="text-amber-600"
             onClick={() => handleStatusChange("inactive")}
+            disabled={isProcessing}
           >
             <UserX className="h-4 w-4" />
           </Button>
@@ -113,6 +153,7 @@ export const AgentActionButtons = ({ agent, onStatusChange }: AgentActionButtons
             size="icon" 
             className="text-green-600"
             onClick={() => handleStatusChange("active")}
+            disabled={isProcessing}
           >
             <UserCheck className="h-4 w-4" />
           </Button>
@@ -122,6 +163,7 @@ export const AgentActionButtons = ({ agent, onStatusChange }: AgentActionButtons
           size="icon" 
           className="text-destructive"
           onClick={() => setIsDeleteOpen(true)}
+          disabled={isProcessing}
         >
           <Trash className="h-4 w-4" />
         </Button>
@@ -157,7 +199,9 @@ export const AgentActionButtons = ({ agent, onStatusChange }: AgentActionButtons
                 label="Commission Rate (%)"
               />
               <DialogFooter>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit" disabled={isProcessing}>
+                  {isProcessing ? "Saving..." : "Save Changes"}
+                </Button>
               </DialogFooter>
             </form>
           </Form>
@@ -177,11 +221,19 @@ export const AgentActionButtons = ({ agent, onStatusChange }: AgentActionButtons
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteOpen(false)}
+              disabled={isProcessing}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+              disabled={isProcessing}
+            >
+              {isProcessing ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

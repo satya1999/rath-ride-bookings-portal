@@ -9,6 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agents: {
+        Row: {
+          commission_rate: number
+          email: string
+          id: string
+          joined_at: string
+          name: string
+          phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number
+          email: string
+          id: string
+          joined_at?: string
+          name: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          email?: string
+          id?: string
+          joined_at?: string
+          name?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          agent_id: string | null
+          booking_number: string
+          created_at: string
+          id: string
+          passengers: Json
+          seats: Json
+          status: string
+          total_amount: number
+          trip_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          booking_number: string
+          created_at?: string
+          id?: string
+          passengers: Json
+          seats: Json
+          status?: string
+          total_amount: number
+          trip_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          booking_number?: string
+          created_at?: string
+          id?: string
+          passengers?: Json
+          seats?: Json
+          status?: string
+          total_amount?: number
+          trip_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bus_layouts: {
         Row: {
           configuration: Json
@@ -36,15 +126,167 @@ export type Database = {
         }
         Relationships: []
       }
+      commissions: {
+        Row: {
+          agent_id: string
+          amount: number
+          booking_id: string
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          amount: number
+          booking_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          amount?: number
+          booking_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trips: {
+        Row: {
+          arrival_date: string
+          arrival_time: string
+          base_price: number
+          bus_layout_id: string | null
+          created_at: string
+          departure_date: string
+          departure_time: string
+          destination: string
+          id: string
+          name: string
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          arrival_date: string
+          arrival_time: string
+          base_price: number
+          bus_layout_id?: string | null
+          created_at?: string
+          departure_date: string
+          departure_time: string
+          destination: string
+          id?: string
+          name: string
+          source: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          arrival_date?: string
+          arrival_time?: string
+          base_price?: number
+          bus_layout_id?: string | null
+          created_at?: string
+          departure_date?: string
+          departure_time?: string
+          destination?: string
+          id?: string
+          name?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trips_bus_layout_id_fkey"
+            columns: ["bus_layout_id"]
+            isOneToOne: false
+            referencedRelation: "bus_layouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: { uid: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "staff" | "agent" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -159,6 +401,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "staff", "agent", "user"],
+    },
   },
 } as const

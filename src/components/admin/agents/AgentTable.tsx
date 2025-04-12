@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AgentActionButtons } from "@/components/admin/agents/AgentActionButtons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Agent {
   id: string;
@@ -23,9 +24,41 @@ interface Agent {
 interface AgentTableProps {
   agents: Agent[];
   onStatusChange: (agentId: string, newStatus: string) => void;
+  loading?: boolean;
 }
 
-export const AgentTable = ({ agents, onStatusChange }: AgentTableProps) => {
+export const AgentTable = ({ agents, onStatusChange, loading = false }: AgentTableProps) => {
+  if (loading) {
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Bookings</TableHead>
+            <TableHead>Commissions</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Joined</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[...Array(5)].map((_, index) => (
+            <TableRow key={index}>
+              <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-[70px]" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+              <TableCell className="text-right"><Skeleton className="h-4 w-[100px] ml-auto" /></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -55,7 +88,7 @@ export const AgentTable = ({ agents, onStatusChange }: AgentTableProps) => {
                   {agent.status}
                 </Badge>
               </TableCell>
-              <TableCell>{new Date(agent.joined).toLocaleDateString()}</TableCell>
+              <TableCell>{new Date(agent.joined || agent.joined_at).toLocaleDateString()}</TableCell>
               <TableCell className="text-right">
                 <AgentActionButtons 
                   agent={agent} 
