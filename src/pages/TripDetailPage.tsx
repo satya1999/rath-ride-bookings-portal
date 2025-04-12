@@ -16,7 +16,7 @@ import "@/styles/seat.css";
 const mockTripData = {
   id: "1",
   title: "Kedarnath & Badrinath Yatra",
-  description: "Experience a spiritual journey to the sacred shrines of Kedarnath and Badrinath. Travel in our luxurious 2X1 AC Sleeper Bus for a comfortable journey through the Himalayas.",
+  description: "Experience a spiritual journey to the sacred shrines of Kedarnath and Badrinath. Travel in our luxurious 1X2 AC Sleeper Bus with comfortable berths for a peaceful journey through the Himalayas.",
   from: "Bhubaneswar",
   to: "Kedarnath & Badrinath",
   date: new Date(2025, 4, 14),
@@ -54,12 +54,19 @@ const mockTripData = {
   ]
 };
 
-// Seat layout data - normally this would come from the backend
+// Seat layout data - updated for 1x2 seating configuration with sleeper berths
 const seatLayout = {
-  rows: 9,
-  columns: 4,
-  aisle: [2], // Column indices that represent the aisle
-  unavailableSeats: ["1A", "3C", "5D", "7B", "9A"] // Already booked seats
+  lowerDeck: {
+    rows: 6,
+    columns: 3, // 1 on left, aisle, 2 on right
+    aisle: [1], // Middle column index that represents the aisle
+    unavailableSeats: ["2A", "4C", "6B"] // Already booked seats
+  },
+  upperDeck: {
+    leftSleepers: 5, // 5 sleeper berths on the left side
+    rightDoubleSleepers: 5, // 5 double sleeper berths on the right side
+    unavailableBerths: ["SL3", "DSR2"] // Already booked berths - SL for left sleeper, DSR for right double sleeper
+  }
 };
 
 const TripDetailPage = () => {

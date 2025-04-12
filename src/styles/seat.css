@@ -35,3 +35,90 @@
   color: white;
   border: 1px solid #059669;
 }
+
+/* Sleeper berth styles */
+.sleeper {
+  width: 5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.sleeper-available {
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s;
+}
+
+.sleeper-available:hover {
+  background-color: #e5e7eb;
+}
+
+.sleeper-booked {
+  background-color: #ef4444;
+  color: white;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sleeper-selected {
+  background-color: #10b981;
+  color: white;
+  border: 1px solid #059669;
+}
+
+/* Double sleeper berth styles */
+.double-sleeper {
+  width: 5rem;
+  height: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.double-sleeper-available {
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s;
+}
+
+.double-sleeper-available:hover {
+  background-color: #e5e7eb;
+}
+
+.double-sleeper-booked {
+  background-color: #ef4444;
+  color: white;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.double-sleeper-selected {
+  background-color: #10b981;
+  color: white;
+  border: 1px solid #059669;
+}
+
+.separator {
+  height: 1px;
+  background-color: #d1d5db;
+  margin: 1rem 0;
+  width: 100%;
+}
+
+.deck-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
