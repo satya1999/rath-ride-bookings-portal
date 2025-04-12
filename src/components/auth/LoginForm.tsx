@@ -32,7 +32,12 @@ const LoginForm = () => {
       
       if (error) throw error;
       
-      // The onAuthStateChange listener in AuthContext will handle redirecting
+      // Redirect to dashboard - added automatic redirection here
+      navigate("/dashboard");
+      toast({
+        title: "Login successful",
+        description: "Welcome to your agent dashboard",
+      });
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
