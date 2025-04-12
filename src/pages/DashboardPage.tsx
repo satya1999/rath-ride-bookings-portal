@@ -21,6 +21,7 @@ const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState<string>(tabFromUrl || "overview");
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
   useEffect(() => {
     // Update active tab when URL changes
@@ -56,6 +57,7 @@ const DashboardPage = () => {
   };
 
   const navigateToBooking = () => {
+    // Explicitly navigate to the trips page
     navigate("/trips");
   };
   
