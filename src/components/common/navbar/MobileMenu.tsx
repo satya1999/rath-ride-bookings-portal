@@ -18,11 +18,15 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const { user, signOut } = useAuth();
 
   const isActivePath = (path: string) => {
-    return location.pathname === path;
+    // Make sure to handle both exact path and subpaths
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
   const handleNavigation = (path: string) => {
-    navigate(path);
+    navigate(path, { replace: false });
     onClose();
   };
 
@@ -85,6 +89,13 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
               className="w-full"
             >
               <User className="h-4 w-4 mr-2" /> Dashboard
+            </Button>
+            <Button 
+              onClick={() => handleNavigation('/trips')}
+              variant="outline" 
+              className="w-full"
+            >
+              <User className="h-4 w-4 mr-2" /> Book Tickets
             </Button>
             <Button 
               variant="outline" 

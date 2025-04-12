@@ -7,7 +7,11 @@ const DesktopMenu = () => {
   const location = useLocation();
 
   const isActivePath = (path: string) => {
-    return location.pathname === path;
+    // Make sure to handle both exact path and subpaths
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
   return (

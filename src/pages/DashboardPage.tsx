@@ -57,9 +57,9 @@ const DashboardPage = () => {
   };
 
   const navigateToBooking = (e: React.MouseEvent) => {
-    // Prevent any default behavior
     e.preventDefault();
-    // Use navigate with replace:false to ensure we create a new history entry
+    e.stopPropagation(); // Stop any event propagation
+    // Navigate to trips page
     navigate("/trips", { replace: false });
   };
   
