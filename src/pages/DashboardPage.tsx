@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,6 +20,16 @@ const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState<string>("overview");
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Get tab from URL query parameter
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['overview', 'bookings', 'commissions', 'wallet'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
   
   useEffect(() => {
     // Redirect to login if not authenticated
@@ -47,6 +57,12 @@ const DashboardPage = () => {
 
   const navigateToBooking = () => {
     navigate("/trips");
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Update URL with tab parameter
+    navigate(`/dashboard?tab=${value}`, { replace: true });
   };
 
   return (
@@ -78,7 +94,7 @@ const DashboardPage = () => {
           />
           
           {/* Dashboard Tabs */}
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="mt-8">
+          <Tabs defaultValue="overview" value={activeTab} onValueChange={handleTabChange} className="mt-8">
             <TabsList className="mb-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="bookings">My Bookings</TabsTrigger>
@@ -90,7 +106,7 @@ const DashboardPage = () => {
               <OverviewTab 
                 recentBookings={mockDashboardData.recentBookings}
                 commissionHistory={mockDashboardData.commissionHistory}
-                onTabChange={setActiveTab}
+                onTabChange={handleTabChange}
               />
             </TabsContent>
             
