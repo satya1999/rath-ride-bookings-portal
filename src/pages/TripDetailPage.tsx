@@ -114,6 +114,7 @@ const TripDetailPage = () => {
                 selectedSeats={selectedSeats}
                 setSelectedSeats={setSelectedSeats}
                 seatLayout={seatLayout}
+                trip={trip}
               />
             </TabsContent>
           </Tabs>

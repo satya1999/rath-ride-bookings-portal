@@ -12,6 +12,16 @@ export interface TripPhoto {
   url: string;
 }
 
+export interface Passenger {
+  name: string;
+  mobile: string;
+  age: number;
+  bloodGroup?: string;
+  aadharFront?: File;
+  aadharBack?: File;
+  seatNumber: string;
+}
+
 export interface Trip {
   id: string;
   title: string;
