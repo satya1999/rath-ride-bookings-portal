@@ -70,8 +70,13 @@ const PassengerForm = ({ selectedSeats, onSubmit }: PassengerFormProps) => {
       return;
     }
 
+    // Make sure all required fields from Passenger type are included
     const passengerData: Passenger = {
-      ...values,
+      name: values.name,
+      mobile: values.mobile,
+      age: values.age,
+      bloodGroup: values.bloodGroup,
+      seatNumber: values.seatNumber,
       aadharFront,
       aadharBack,
     };

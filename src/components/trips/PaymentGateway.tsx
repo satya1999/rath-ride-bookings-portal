@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Passenger } from "@/types/trip";
-import { Indian, CreditCard, CheckCircle2 } from "lucide-react";
+import { IndianRupee, CreditCard, CheckCircle2 } from "lucide-react";
 
 interface PaymentGatewayProps {
   passenger: Passenger;
@@ -86,7 +86,7 @@ const PaymentGateway = ({ passenger, fare, onPaymentSuccess }: PaymentGatewayPro
                 />
                 <label htmlFor="phonepe" className="ml-3 flex items-center gap-2">
                   <div className="w-8 h-8 flex items-center justify-center bg-purple-600 rounded-full text-white">
-                    <Indian className="h-5 w-5" />
+                    <IndianRupee className="h-5 w-5" />
                   </div>
                   <span className="font-medium">PhonePe</span>
                 </label>
