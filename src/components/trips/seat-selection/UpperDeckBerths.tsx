@@ -13,9 +13,9 @@ const UpperDeckBerths = ({ berths, onBerthClick }: UpperDeckBerthsProps) => {
   return (
     <div className="flex justify-center mb-8">
       <div className="bg-gray-100 p-4 sm:p-6 rounded-lg">
-        <div className="mb-6 text-center text-lg sm:text-xl font-bold">Sleepers</div>
+        <div className="mb-6 text-center text-lg sm:text-xl font-bold">1X2 Push Back Seat</div>
         
-        <div className={`flex ${isMobile ? "gap-6" : "gap-16"}`}>
+        <div className={`relative flex ${isMobile ? "gap-28" : "gap-32"}`}>
           {/* Left side berths (SL1-SL5) */}
           <div className="flex flex-col gap-4">
             {berths[0].map((berth, berthIndex) => (
@@ -29,11 +29,16 @@ const UpperDeckBerths = ({ berths, onBerthClick }: UpperDeckBerthsProps) => {
             ))}
           </div>
           
+          {/* Center label */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-90">
+            <span className="text-xl font-bold whitespace-nowrap">Sleepers</span>
+          </div>
+          
           {/* Right side berths (SR1-SR10) in pairs */}
           <div className="flex flex-col gap-4">
             {berths[1].map((berth, berthIndex) => (
               berthIndex % 2 === 0 && (
-                <div key={`right-row-${berthIndex}`} className="flex gap-4">
+                <div key={`right-row-${berthIndex}`} className="flex gap-3">
                   <div
                     className={`sleeper-berth ${berth.booked ? 'seat-booked' : berth.selected ? 'seat-selected' : 'seat-available'}`}
                     onClick={() => onBerthClick(berth.id, berth.booked)}
