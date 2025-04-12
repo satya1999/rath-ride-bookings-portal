@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -56,6 +57,7 @@ const Navbar = () => {
             <Link to="/trips" className="px-3 py-2 rounded-md text-sm font-medium hover:text-rath-red transition-colors">Trips</Link>
             <Link to="/about" className="px-3 py-2 rounded-md text-sm font-medium hover:text-rath-red transition-colors">About Us</Link>
             <Link to="/contact" className="px-3 py-2 rounded-md text-sm font-medium hover:text-rath-red transition-colors">Contact</Link>
+            <ThemeToggle />
           </div>
           
           {/* Auth buttons */}
@@ -129,6 +131,11 @@ const Navbar = () => {
           >
             Contact
           </Link>
+          
+          <div className="flex items-center mt-2 px-3">
+            <span className="text-sm mr-2">Theme:</span>
+            <ThemeToggle />
+          </div>
           
           {user ? (
             <div className="flex flex-col space-y-2 mt-4">
