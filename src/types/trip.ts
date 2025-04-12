@@ -25,7 +25,7 @@ export interface Trip {
   fare: number;
   availableSeats: number;
   totalSeats: number;
-  busType: string;
+  busType: "Seater" | "Sleeper" | "Mixed";
   amenities: string[];
   imageUrl: string;
   itinerary: Itinerary[];

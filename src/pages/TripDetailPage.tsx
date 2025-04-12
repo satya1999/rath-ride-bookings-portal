@@ -25,7 +25,7 @@ const mockTripData = {
   fare: 24500,
   availableSeats: 32,
   totalSeats: 36,
-  busType: "Sleeper",
+  busType: "Sleeper" as const,
   amenities: ["AC Sleeper Bus", "Pure Veg Meals", "Dharamshala Stay", "Experienced Guide", "Medical Support"],
   imageUrl: "https://source.unsplash.com/random/800x400/?kedarnath",
   itinerary: [
