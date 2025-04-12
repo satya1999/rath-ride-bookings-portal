@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { commissionService } from "@/services/api";
+import { commissionService } from "@/services";
 import { toast } from "sonner";
 
 export interface Commission {

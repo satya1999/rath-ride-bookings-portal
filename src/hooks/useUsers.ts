@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { userService } from "@/services/api";
+import { userService } from "@/services";
 import { toast } from "sonner";
 
 export interface User {
