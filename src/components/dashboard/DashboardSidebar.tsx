@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,6 @@ const DashboardSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   
   const handleSignOut = async () => {
     await signOut();
@@ -31,19 +30,9 @@ const DashboardSidebar = () => {
   const menuItems = [
     { icon: <LayoutDashboard className="mr-2 h-4 w-4" />, label: 'Dashboard', path: '/dashboard' },
     { icon: <Ticket className="mr-2 h-4 w-4" />, label: 'My Bookings', path: '/trips' },
-    { icon: <CircleDollarSign className="mr-2 h-4 w-4" />, label: 'Earnings', path: '/dashboard' },
+    { icon: <CircleDollarSign className="mr-2 h-4 w-4" />, label: 'Earnings', path: '/dashboard?tab=commissions' },
     { icon: <User className="mr-2 h-4 w-4" />, label: 'My Profile', path: '/profile' }
   ];
-  
-  const handleNavigation = (path) => {
-    if (path === '/dashboard' && menuItems[2].label === 'Earnings') {
-      navigate('/dashboard?tab=commissions');
-      setIsOpen(false);
-    } else {
-      navigate(path);
-      setIsOpen(false);
-    }
-  };
   
   return (
     <>
@@ -72,15 +61,15 @@ const DashboardSidebar = () => {
           {/* Navigation Links */}
           <nav className="flex-1 p-4 space-y-1">
             {menuItems.map((item, index) => (
-              <Button
+              <Link 
                 key={index}
-                variant="ghost"
-                className={`w-full justify-start ${location.pathname === item.path || (location.pathname === '/dashboard' && item.label === 'Earnings' && location.search.includes('tab=commissions')) ? 'bg-accent' : ''}`}
-                onClick={() => handleNavigation(item.path)}
+                to={item.path}
+                className="flex items-center px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                onClick={() => setIsOpen(false)}
               >
                 {item.icon}
                 <span>{item.label}</span>
-              </Button>
+              </Link>
             ))}
           </nav>
           
