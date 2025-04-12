@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Upload, BusFront } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 
 interface BusLayoutUploaderProps {
-  onLayoutAdded?: (layout: { name: string; type: string }) => void;
+  onLayoutAdded?: (layout: { name: string; type: string; configuration?: any }) => void;
 }
 
 export const BusLayoutUploader = ({ onLayoutAdded }: BusLayoutUploaderProps) => {
@@ -19,7 +18,6 @@ export const BusLayoutUploader = ({ onLayoutAdded }: BusLayoutUploaderProps) => 
   const [uploading, setUploading] = useState(false);
   const [savedLayouts, setSavedLayouts] = useState<Array<{name: string, type: string}>>([]);
 
-  // Check for layouts in localStorage on component mount
   useEffect(() => {
     const checkForSavedLayouts = () => {
       const lastLayout = localStorage.getItem('lastBusLayout');
@@ -28,7 +26,6 @@ export const BusLayoutUploader = ({ onLayoutAdded }: BusLayoutUploaderProps) => 
           const parsedLayout = JSON.parse(lastLayout);
           if (parsedLayout && parsedLayout.name) {
             setSavedLayouts(prev => {
-              // Only add if not already in the list
               if (!prev.some(layout => layout.name === parsedLayout.name)) {
                 return [...prev, {
                   name: parsedLayout.name,
@@ -46,7 +43,6 @@ export const BusLayoutUploader = ({ onLayoutAdded }: BusLayoutUploaderProps) => 
 
     checkForSavedLayouts();
 
-    // Set up a listener for storage events
     window.addEventListener('storage', checkForSavedLayouts);
     
     return () => {
@@ -76,22 +72,52 @@ export const BusLayoutUploader = ({ onLayoutAdded }: BusLayoutUploaderProps) => 
 
     setUploading(true);
     
-    // Simulate upload delay
     setTimeout(() => {
       toast.success(`Bus layout "${layoutName}" uploaded successfully`);
       setUploading(false);
       
       if (onLayoutAdded) {
+        let configuration = {};
+        
+        switch(layoutType) {
+          case "sleeper":
+            configuration = {
+              upperDeck: true,
+              lowerDeck: false
+            };
+            break;
+          case "seater":
+            configuration = {
+              upperDeck: false,
+              lowerDeck: true
+            };
+            break;
+          case "1x2-sleeper":
+            configuration = {
+              upperDeck: true,
+              lowerDeck: false,
+              layout: "1x2"
+            };
+            break;
+          case "2x2-seater":
+            configuration = {
+              upperDeck: false,
+              lowerDeck: true,
+              layout: "2x2"
+            };
+            break;
+        }
+        
         onLayoutAdded({
           name: layoutName,
-          type: layoutType
+          type: layoutType,
+          configuration: configuration
         });
       }
       
       setFile(null);
       setLayoutName("");
       
-      // In a real implementation, you would send the file to your backend
       console.log("Layout name:", layoutName);
       console.log("Layout type:", layoutType);
       console.log("File:", file);

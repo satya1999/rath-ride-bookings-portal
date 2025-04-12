@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { BusLayoutUploader } from "@/components/admin/bus/BusLayoutUploader";
@@ -72,13 +71,11 @@ const BusLayoutsPage = () => {
   ]);
 
   useEffect(() => {
-    // Check for saved layouts in localStorage
     const lastLayout = localStorage.getItem('lastBusLayout');
     if (lastLayout) {
       try {
         const parsedLayout = JSON.parse(lastLayout);
         if (parsedLayout && parsedLayout.name) {
-          // Check if this layout is already in our list
           if (!busLayouts.some(layout => layout.name === parsedLayout.name)) {
             setBusLayouts(prev => [
               ...prev,
@@ -126,7 +123,6 @@ const BusLayoutsPage = () => {
         layoutName = "Custom Bus Layout";
     }
     
-    // Add the new layout
     const newLayout = {
       id: (busLayouts.length + 1).toString(),
       name: layoutName,
@@ -142,7 +138,6 @@ const BusLayoutsPage = () => {
   
   const handleLayoutDelete = (id: string) => {
     setBusLayouts(prev => prev.filter(layout => layout.id !== id));
-    // In a real app, you would also delete from the backend
   };
   
   const handleLayoutUpdate = (id: string, updatedData: Partial<BusLayout>) => {
@@ -153,7 +148,6 @@ const BusLayoutsPage = () => {
           : layout
       )
     );
-    // In a real app, you would also update in the backend
   };
 
   return (
@@ -203,7 +197,7 @@ const BusLayoutsPage = () => {
                 type: layout.type,
                 createdAt: new Date().toISOString().split('T')[0],
                 status: "active" as const,
-                configuration: layout.configuration
+                configuration: layout.configuration || {}
               }]);
             }} />
             <div className="bg-muted p-6 rounded-lg border border-border">
