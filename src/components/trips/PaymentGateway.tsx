@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import { Json } from "@/integrations/supabase/types";
-import { bookingService } from "@/services/api";
+import { bookingService } from "@/services";
 
 interface PaymentGatewayProps {
   passengers: Passenger[];

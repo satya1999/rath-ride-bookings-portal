@@ -9,7 +9,7 @@ import TripItineraryTab from "@/components/trips/TripItineraryTab";
 import TripPhotosTab from "@/components/trips/TripPhotosTab";
 import TripSeatsTab from "@/components/trips/TripSeatsTab";
 import { Trip, createTrip } from "@/types/trip";
-import { bookingService } from "@/services/api";
+import { bookingService } from "@/services";
 import { toast } from "sonner";
 import "@/styles/seat.css";
 

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { bookingService } from "@/services/api";
+import { bookingService } from "@/services";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 

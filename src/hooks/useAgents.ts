@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { agentService } from "@/services/api";
+import { agentService } from "@/services";
 import { toast } from "sonner";
 
 export interface Agent {

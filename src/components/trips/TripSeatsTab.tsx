@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
@@ -9,7 +8,7 @@ import TicketPreview from "./TicketPreview";
 import SeatSelectionContent from "./seat-selection/SeatSelectionContent";
 import { useSeatLayout } from "./seat-selection/useSeatLayout";
 import { toast } from "sonner";
-import { bookingService } from "@/services/api";
+import { bookingService } from "@/services";
 
 interface SeatLayoutData {
   rows: number;
@@ -37,7 +36,6 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Fetch already booked seats for this trip
   useEffect(() => {
     const fetchBookedSeats = async () => {
       try {
@@ -45,7 +43,6 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
         setError(null);
         const bookedSeats = await bookingService.getTripBookedSeats(trip.id);
         
-        // Update unavailable seats with already booked seats
         const updatedLayout = {
           ...seatLayout,
           unavailableSeats: [...seatLayout.unavailableSeats, ...bookedSeats]
@@ -53,7 +50,6 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
         
         setBookedSeats(bookedSeats);
         
-        // Update seatLayout.unavailableSeats with real booked seats
         seatLayout.unavailableSeats = updatedLayout.unavailableSeats;
         
       } catch (error) {
