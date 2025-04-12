@@ -1,230 +1,54 @@
 
 import React, { useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut, UserCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useIsMobile } from "@/hooks/use-mobile";
+import NavLogo from "./navbar/NavLogo";
+import DesktopMenu from "./navbar/DesktopMenu";
+import AuthButtons from "./navbar/AuthButtons";
+import MobileMenuToggle from "./navbar/MobileMenuToggle";
+import MobileMenu from "./navbar/MobileMenu";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-  const location = useLocation();
+  const isMobile = useIsMobile();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-  };
-
-  const handleLogin = () => {
-    navigate("/login");
-  };
-
-  const handleRegister = () => {
-    navigate("/register");
-  };
-
-  const handleDashboard = () => {
-    navigate("/dashboard");
-  };
-
-  const handleProfile = () => {
-    navigate("/profile");
-  };
-
-  const handleLogout = async () => {
-    await signOut();
-  };
-  
-  const isActivePath = (path: string) => {
-    return location.pathname === path;
   };
 
   return (
     <nav className="bg-background shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
+          {/* Logo */}
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-rath-red font-heading font-bold text-2xl">ANANDA</span>
-              <span className="text-rath-gold font-heading font-bold text-2xl ml-1">RATH</span>
-            </Link>
+            <NavLogo />
           </div>
           
-          {/* Desktop menu */}
-          <div className="hidden md:ml-6 md:flex md:items-center md:space-x-4">
-            <Link 
-              to="/" 
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActivePath('/') ? 'text-rath-red' : 'hover:text-rath-red'
-              }`}
-            >
-              Home
-            </Link>
-            <Link 
-              to="/trips" 
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActivePath('/trips') ? 'text-rath-red' : 'hover:text-rath-red'
-              }`}
-            >
-              Trips
-            </Link>
-            <Link 
-              to="/about" 
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActivePath('/about') ? 'text-rath-red' : 'hover:text-rath-red'
-              }`}
-            >
-              About Us
-            </Link>
-            <Link 
-              to="/contact" 
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActivePath('/contact') ? 'text-rath-red' : 'hover:text-rath-red'
-              }`}
-            >
-              Contact
-            </Link>
-            <ThemeToggle />
-          </div>
+          {/* Desktop Navigation */}
+          <DesktopMenu />
           
-          {/* Auth buttons */}
-          <div className="hidden md:flex md:items-center md:ml-6">
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex items-center">
-                    <User className="h-4 w-4 mr-2" /> Profile
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleProfile}>
-                    <UserCircle className="h-4 w-4 mr-2" /> My Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDashboard}>
-                    <User className="h-4 w-4 mr-2" /> Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="h-4 w-4 mr-2" /> Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex space-x-2">
-                <Button variant="outline" onClick={handleLogin}>Login</Button>
-                <Button onClick={handleRegister}>Register</Button>
-              </div>
-            )}
-          </div>
+          {/* Auth Buttons */}
+          <AuthButtons />
           
-          {/* Mobile menu button */}
+          {/* Mobile Menu Button */}
           <div className="flex items-center md:hidden">
-            <button
-              onClick={toggleMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-primary hover:bg-gray-100 focus:outline-none"
-              aria-expanded={isMenuOpen}
-              aria-controls="mobile-menu"
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            <MobileMenuToggle 
+              isOpen={isMenuOpen} 
+              onClick={toggleMenu} 
+            />
           </div>
         </div>
       </div>
       
-      {/* Mobile menu */}
-      <div 
-        id="mobile-menu"
-        className={cn("md:hidden", isMenuOpen ? "block" : "hidden")}
-      >
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t">
-          <Link 
-            to="/" 
-            className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-              isActivePath('/') ? 'text-rath-red' : 'hover:text-rath-red'
-            }`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Home
-          </Link>
-          <Link 
-            to="/trips" 
-            className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-              isActivePath('/trips') ? 'text-rath-red' : 'hover:text-rath-red'
-            }`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Trips
-          </Link>
-          <Link 
-            to="/about" 
-            className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-              isActivePath('/about') ? 'text-rath-red' : 'hover:text-rath-red'
-            }`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            About Us
-          </Link>
-          <Link 
-            to="/contact" 
-            className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-              isActivePath('/contact') ? 'text-rath-red' : 'hover:text-rath-red'
-            }`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Contact
-          </Link>
-          
-          <div className="flex items-center mt-2 px-3">
-            <span className="text-sm mr-2">Theme:</span>
-            <ThemeToggle />
-          </div>
-          
-          {user ? (
-            <div className="flex flex-col space-y-2 mt-4">
-              <Button 
-                onClick={() => { handleProfile(); setIsMenuOpen(false); }} 
-                className="w-full"
-              >
-                <UserCircle className="h-4 w-4 mr-2" /> My Profile
-              </Button>
-              <Button 
-                onClick={() => { handleDashboard(); setIsMenuOpen(false); }} 
-                className="w-full"
-              >
-                <User className="h-4 w-4 mr-2" /> Dashboard
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => { handleLogout(); setIsMenuOpen(false); }}
-                className="w-full"
-              >
-                <LogOut className="h-4 w-4 mr-2" /> Logout
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-col space-y-2 mt-4">
-              <Button variant="outline" onClick={() => { handleLogin(); setIsMenuOpen(false); }}>
-                Login
-              </Button>
-              <Button onClick={() => { handleRegister(); setIsMenuOpen(false); }}>
-                Register
-              </Button>
-            </div>
-          )}
+      {/* Mobile Menu */}
+      {(isMenuOpen || (isMobile && isMenuOpen)) && (
+        <div 
+          id="mobile-menu"
+          className="md:hidden"
+        >
+          <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
         </div>
-      </div>
+      )}
     </nav>
   );
 };
