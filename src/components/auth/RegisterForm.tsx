@@ -17,6 +17,7 @@ const RegisterForm = () => {
     name: "",
     phone: "",
     email: "",
+    password: "",
     aadhaar: ""
   });
 
@@ -42,6 +43,7 @@ const RegisterForm = () => {
 
       await signUp(
         formData.email,
+        formData.password,
         undefined, // use default redirect
         userData
       );
@@ -102,6 +104,19 @@ const RegisterForm = () => {
               placeholder="john@example.com"
               required
               value={formData.email}
+              onChange={handleChange}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              required
+              value={formData.password}
               onChange={handleChange}
             />
           </div>

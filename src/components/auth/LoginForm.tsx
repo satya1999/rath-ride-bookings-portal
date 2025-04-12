@@ -8,31 +8,49 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [phoneOrEmail, setPhoneOrEmail] = useState("");
-  const [activeTab, setActiveTab] = useState<string>("phone");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("email");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      if (activeTab === "email") {
-        await signIn(phoneOrEmail);
-      } else {
-        // For phone, we would need to implement a different method
-        // For now, we'll just show a message
-        toast({
-          title: "Phone login not implemented",
-          description: "Please use email for now.",
-          variant: "destructive",
-        });
-      }
+      // Use password-based authentication
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) throw error;
+      
+      // The onAuthStateChange listener in AuthContext will handle redirecting
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMagicLinkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      await signIn(email);
       navigate("/verify-otp");
     } catch (error) {
       console.error("Login error:", error);
@@ -54,30 +72,11 @@ const LoginForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="phone" className="w-full" onValueChange={setActiveTab}>
+        <Tabs defaultValue="email" className="w-full" onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="phone">Phone</TabsTrigger>
-            <TabsTrigger value="email">Email</TabsTrigger>
+            <TabsTrigger value="email">Email & Password</TabsTrigger>
+            <TabsTrigger value="magic">Magic Link</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="phone">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  placeholder="+91 9876543210"
-                  required
-                  value={phoneOrEmail}
-                  onChange={(e) => setPhoneOrEmail(e.target.value)}
-                />
-              </div>
-              
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Sending OTP..." : "Send OTP"}
-              </Button>
-            </form>
-          </TabsContent>
           
           <TabsContent value="email">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,13 +87,45 @@ const LoginForm = () => {
                   type="email"
                   placeholder="john@example.com"
                   required
-                  value={phoneOrEmail}
-                  onChange={(e) => setPhoneOrEmail(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Sending OTP..." : "Send OTP"}
+                {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
+            </form>
+          </TabsContent>
+          
+          <TabsContent value="magic">
+            <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email-magic">Email Address</Label>
+                <Input
+                  id="email-magic"
+                  type="email"
+                  placeholder="john@example.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Sending Magic Link..." : "Send Magic Link"}
               </Button>
             </form>
           </TabsContent>
