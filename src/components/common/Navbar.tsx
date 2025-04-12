@@ -41,13 +41,8 @@ const Navbar = () => {
       </div>
       
       {/* Mobile Menu */}
-      {(isMenuOpen || (isMobile && isMenuOpen)) && (
-        <div 
-          id="mobile-menu"
-          className="md:hidden"
-        >
-          <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-        </div>
+      {(isMenuOpen && isMobile) && (
+        <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       )}
     </nav>
   );

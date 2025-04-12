@@ -1,5 +1,4 @@
 
-import React from "react";
 import { useLocation } from "react-router-dom";
 import NavLink from "./NavLink";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";

@@ -1,7 +1,5 @@
 
-import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,8 +30,6 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
     await signOut();
     onClose();
   };
-
-  if (!isOpen) return null;
 
   return (
     <div className="md:hidden block border-t">
