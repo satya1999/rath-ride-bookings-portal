@@ -25,7 +25,8 @@ import {
   Settings,
   LogOut,
   UserCog,
-  CreditCard
+  CreditCard,
+  BusFront
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -119,6 +120,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                       <a href="/admin/commissions">
                         <CreditCard />
                         <span>Commissions</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Bus Layouts">
+                      <a href="/admin/bus-layouts">
+                        <BusFront />
+                        <span>Bus Layouts</span>
                       </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

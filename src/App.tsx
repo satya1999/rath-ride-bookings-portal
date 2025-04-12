@@ -25,6 +25,7 @@ import AgentsPage from "./pages/admin/AgentsPage";
 import BookingsPage from "./pages/admin/BookingsPage";
 import CommissionsPage from "./pages/admin/CommissionsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
+import BusLayoutsPage from "./pages/admin/BusLayoutsPage";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/admin/bookings" element={<BookingsPage />} />
             <Route path="/admin/commissions" element={<CommissionsPage />} />
             <Route path="/admin/settings" element={<SettingsPage />} />
+            <Route path="/admin/bus-layouts" element={<BusLayoutsPage />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

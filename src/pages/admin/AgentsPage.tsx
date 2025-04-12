@@ -12,31 +12,34 @@ import {
   TableCell 
 } from "@/components/ui/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { 
-  Eye, 
-  MoreHorizontal, 
-  Search, 
-  UserCog,
-  Edit,
-  Trash,
-  UserCheck,
-  UserX,
-  CreditCard
-} from "lucide-react";
+import { Search, UserCog } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "sonner";
+
+import { TextField } from "@/components/admin/settings/form-fields/TextField";
+import { NumberField } from "@/components/admin/settings/form-fields/NumberField";
+import { AgentActionButtons } from "@/components/admin/agents/AgentActionButtons";
+
+// Form schema
+const addAgentSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  commission: z.coerce.number().min(0).max(100),
+});
+
+type AddAgentFormValues = z.infer<typeof addAgentSchema>;
 
 // Mock data
 const agents = [
@@ -89,17 +92,70 @@ const agents = [
 
 const AgentsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [agentsList, setAgentsList] = useState(agents);
+  const [isAddAgentOpen, setIsAddAgentOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
   
-  const filteredAgents = agents.filter(agent => 
-    agent.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    agent.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const addAgentForm = useForm<AddAgentFormValues>({
+    resolver: zodResolver(addAgentSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      commission: 10,
+    }
+  });
+
+  const filteredAgents = agentsList.filter(agent => {
+    // Apply search filter
+    const matchesSearch = 
+      agent.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      agent.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Apply status filter
+    const matchesStatus = 
+      activeFilter === "all" || 
+      agent.status === activeFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const handleAddAgent = (data: AddAgentFormValues) => {
+    // In a real app, you'd make an API call here
+    const newAgent = {
+      id: `${Date.now()}`,
+      name: data.name,
+      email: data.email,
+      bookings: 0,
+      commissions: "₹0",
+      status: "active",
+      joined: new Date().toISOString().split('T')[0]
+    };
+    
+    setAgentsList([newAgent, ...agentsList]);
+    setIsAddAgentOpen(false);
+    toast.success(`Agent ${data.name} created successfully`);
+    addAgentForm.reset();
+  };
+
+  const handleStatusChange = (agentId: string, newStatus: string) => {
+    setAgentsList(
+      agentsList.map(agent => 
+        agent.id === agentId ? { ...agent, status: newStatus } : agent
+      )
+    );
+    
+    const agent = agentsList.find(a => a.id === agentId);
+    if (agent) {
+      toast.success(`Agent ${agent.name} ${newStatus === "active" ? "activated" : "deactivated"}`);
+    }
+  };
 
   return (
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Agents Management</h1>
-        <Dialog>
+        <Dialog open={isAddAgentOpen} onOpenChange={setIsAddAgentOpen}>
           <DialogTrigger asChild>
             <Button>
               <UserCog className="mr-2 h-4 w-4" />
@@ -110,25 +166,33 @@ const AgentsPage = () => {
             <DialogHeader>
               <DialogTitle>Add New Agent</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label htmlFor="name">Name</label>
-                <Input id="name" placeholder="Full name" />
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="email">Email</label>
-                <Input id="email" type="email" placeholder="Email address" />
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="password">Password</label>
-                <Input id="password" type="password" placeholder="Password" />
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="commission">Commission Rate (%)</label>
-                <Input id="commission" type="number" placeholder="5" />
-              </div>
-            </div>
-            <Button className="w-full">Create Agent</Button>
+            <Form {...addAgentForm}>
+              <form onSubmit={addAgentForm.handleSubmit(handleAddAgent)} className="space-y-4">
+                <TextField
+                  form={addAgentForm}
+                  name="name"
+                  label="Name"
+                />
+                <TextField
+                  form={addAgentForm}
+                  name="email"
+                  label="Email"
+                  type="email"
+                />
+                <TextField
+                  form={addAgentForm}
+                  name="password"
+                  label="Password"
+                  type="password"
+                />
+                <NumberField
+                  form={addAgentForm}
+                  name="commission"
+                  label="Commission Rate (%)"
+                />
+                <Button type="submit" className="w-full">Create Agent</Button>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>
@@ -136,9 +200,24 @@ const AgentsPage = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div className="flex space-x-2">
-            <Button variant="outline">All</Button>
-            <Button variant="outline">Active</Button>
-            <Button variant="outline">Inactive</Button>
+            <Button 
+              variant={activeFilter === "all" ? "default" : "outline"} 
+              onClick={() => setActiveFilter("all")}
+            >
+              All
+            </Button>
+            <Button 
+              variant={activeFilter === "active" ? "default" : "outline"}
+              onClick={() => setActiveFilter("active")}
+            >
+              Active
+            </Button>
+            <Button 
+              variant={activeFilter === "inactive" ? "default" : "outline"}
+              onClick={() => setActiveFilter("inactive")}
+            >
+              Inactive
+            </Button>
           </div>
           
           <div className="relative w-64">
@@ -184,42 +263,10 @@ const AgentsPage = () => {
                   </TableCell>
                   <TableCell>{new Date(agent.joined).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="mr-2 h-4 w-4" />
-                          <span>View</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          <span>Commissions</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          <span>Edit</span>
-                        </DropdownMenuItem>
-                        {agent.status === "active" ? (
-                          <DropdownMenuItem className="text-amber-600">
-                            <UserX className="mr-2 h-4 w-4" />
-                            <span>Deactivate</span>
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem className="text-green-600">
-                            <UserCheck className="mr-2 h-4 w-4" />
-                            <span>Activate</span>
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem className="text-destructive">
-                          <Trash className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <AgentActionButtons 
+                      agent={agent} 
+                      onStatusChange={handleStatusChange} 
+                    />
                   </TableCell>
                 </TableRow>
               ))
