@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { TicketPlus } from "lucide-react";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import OverviewTab from "@/components/dashboard/OverviewTab";
 import BookingsTab from "@/components/dashboard/BookingsTab";
@@ -42,10 +44,25 @@ const DashboardPage = () => {
     });
   };
 
+  const navigateToBooking = () => {
+    navigate("/trips");
+  };
+
   return (
     <PageLayout>
-      <h1 className="mb-2">Agent Dashboard</h1>
-      <p className="text-gray-600 mb-6">Manage your bookings and commissions</p>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="mb-2">Agent Dashboard</h1>
+          <p className="text-gray-600">Manage your bookings and commissions</p>
+        </div>
+        <Button 
+          onClick={navigateToBooking}
+          className="flex items-center gap-2"
+        >
+          <TicketPlus size={18} />
+          Book a new ticket
+        </Button>
+      </div>
       
       {/* Dashboard Stats */}
       <DashboardStats 
