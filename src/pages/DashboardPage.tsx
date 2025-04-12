@@ -1,4 +1,6 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
@@ -8,12 +10,30 @@ import BookingsTab from "@/components/dashboard/BookingsTab";
 import CommissionsTab from "@/components/dashboard/CommissionsTab";
 import WalletTab from "@/components/dashboard/WalletTab";
 import { mockDashboardData } from "@/components/dashboard/DashboardData";
+import { useAuth } from "@/contexts/AuthContext";
 
-// This is just a placeholder for the MVP
-// In a real app, this would be connected to an auth system
 const DashboardPage = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("overview");
+  const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!isLoading && !user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to access the dashboard.",
+        variant: "destructive"
+      });
+      navigate("/login");
+    }
+  }, [user, isLoading, navigate, toast]);
+
+  // Don't render the dashboard if not authenticated or still loading
+  if (isLoading || !user) {
+    return null;
+  }
   
   const handleWithdraw = () => {
     toast({

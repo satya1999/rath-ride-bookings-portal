@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [phoneOrEmail, setPhoneOrEmail] = useState("");
   const [activeTab, setActiveTab] = useState<string>("phone");
@@ -19,25 +21,23 @@ const LoginForm = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Here you would typically integrate with an auth service
-    // For now, we'll just simulate the login flow
     try {
-      setTimeout(() => {
-        // Mock successful OTP send
+      if (activeTab === "email") {
+        await signIn(phoneOrEmail);
+      } else {
+        // For phone, we would need to implement a different method
+        // For now, we'll just show a message
         toast({
-          title: "OTP sent!",
-          description: `We've sent a verification code to your ${activeTab === "phone" ? "phone" : "email"}.`,
+          title: "Phone login not implemented",
+          description: "Please use email for now.",
+          variant: "destructive",
         });
-        navigate("/verify-otp");
-        setIsLoading(false);
-      }, 1500);
+      }
+      navigate("/verify-otp");
     } catch (error) {
+      console.error("Login error:", error);
+    } finally {
       setIsLoading(false);
-      toast({
-        title: "Failed to send OTP",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
     }
   };
 

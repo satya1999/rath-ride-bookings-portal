@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const RegisterForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -30,25 +32,25 @@ const RegisterForm = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Here you would typically integrate with an auth service
-    // For now, we'll just simulate the registration
     try {
-      setTimeout(() => {
-        // Mock successful registration
-        toast({
-          title: "Registration successful!",
-          description: "Verification OTP has been sent to your phone.",
-        });
-        navigate("/verify-otp");
-        setIsLoading(false);
-      }, 1500);
+      // Create user profile data
+      const userData = {
+        name: formData.name,
+        phone: formData.phone,
+        aadhaar: formData.aadhaar
+      };
+
+      await signUp(
+        formData.email,
+        undefined, // use default redirect
+        userData
+      );
+      
+      navigate("/verify-otp");
     } catch (error) {
+      console.error("Registration error:", error);
+    } finally {
       setIsLoading(false);
-      toast({
-        title: "Registration failed",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
     }
   };
 

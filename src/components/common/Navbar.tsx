@@ -2,14 +2,22 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  // Mock authenticated state - will be replaced with actual auth
-  const isAuthenticated = false;
+  const { user, signOut } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -25,6 +33,10 @@ const Navbar = () => {
 
   const handleDashboard = () => {
     navigate("/dashboard");
+  };
+
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
@@ -48,10 +60,24 @@ const Navbar = () => {
           
           {/* Auth buttons */}
           <div className="hidden md:flex md:items-center md:ml-6">
-            {isAuthenticated ? (
-              <Button onClick={handleDashboard} className="flex items-center">
-                <User className="h-4 w-4 mr-2" /> Dashboard
-              </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center">
+                    <User className="h-4 w-4 mr-2" /> Profile
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleDashboard}>
+                    <User className="h-4 w-4 mr-2" /> Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" /> Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <div className="flex space-x-2">
                 <Button variant="outline" onClick={handleLogin}>Login</Button>
@@ -104,13 +130,22 @@ const Navbar = () => {
             Contact
           </Link>
           
-          {isAuthenticated ? (
-            <Button 
-              onClick={() => { handleDashboard(); setIsMenuOpen(false); }} 
-              className="w-full mt-4"
-            >
-              <User className="h-4 w-4 mr-2" /> Dashboard
-            </Button>
+          {user ? (
+            <div className="flex flex-col space-y-2 mt-4">
+              <Button 
+                onClick={() => { handleDashboard(); setIsMenuOpen(false); }} 
+                className="w-full"
+              >
+                <User className="h-4 w-4 mr-2" /> Dashboard
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => { handleLogout(); setIsMenuOpen(false); }}
+                className="w-full"
+              >
+                <LogOut className="h-4 w-4 mr-2" /> Logout
+              </Button>
+            </div>
           ) : (
             <div className="flex flex-col space-y-2 mt-4">
               <Button variant="outline" onClick={() => { handleLogin(); setIsMenuOpen(false); }}>
