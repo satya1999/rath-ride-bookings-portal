@@ -36,7 +36,7 @@ export function useTrips() {
         let formattedItinerary: Itinerary[] = [];
         
         if (Array.isArray(itinerary)) {
-          formattedItinerary = itinerary.map(item => ({
+          formattedItinerary = itinerary.map((item: any) => ({
             day: typeof item.day === 'number' ? item.day : 1,
             title: String(item.title || ''),
             description: String(item.description || '')
