@@ -1,18 +1,20 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Trip, Itinerary, TripPhoto } from "@/types/trip";
+import { format } from "date-fns";
 
 export const tripService = {
   async createTrip(tripData: Partial<Trip>) {
+    // First insert the trip basic information
     const { data: trip, error } = await supabase
       .from('trips')
       .insert({
         name: tripData.title,
         source: tripData.from,
         destination: tripData.to,
-        departure_date: tripData.date,
+        departure_date: format(tripData.date as Date, 'yyyy-MM-dd'),
         departure_time: tripData.departureTime,
-        arrival_date: tripData.date,
+        arrival_date: format(tripData.date as Date, 'yyyy-MM-dd'),
         arrival_time: tripData.arrivalTime,
         base_price: tripData.fare,
         status: 'active'
@@ -25,15 +27,16 @@ export const tripService = {
   },
 
   async updateTrip(id: string, tripData: Partial<Trip>) {
+    // Update the trip basic information
     const { data: trip, error } = await supabase
       .from('trips')
       .update({
         name: tripData.title,
         source: tripData.from,
         destination: tripData.to,
-        departure_date: tripData.date,
+        departure_date: format(tripData.date as Date, 'yyyy-MM-dd'),
         departure_time: tripData.departureTime,
-        arrival_date: tripData.date,
+        arrival_date: format(tripData.date as Date, 'yyyy-MM-dd'),
         arrival_time: tripData.arrivalTime,
         base_price: tripData.fare,
       })
@@ -88,8 +91,8 @@ export const tripService = {
       .upsert({
         trip_id: tripId,
         description,
-        itinerary,
-        amenities
+        itinerary: itinerary as any,
+        amenities: amenities as any
       });
 
     if (error) throw error;

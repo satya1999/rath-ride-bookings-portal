@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from "react";
 import { tripService } from "@/services";
-import { Trip } from "@/types/trip";
+import { Trip, Itinerary } from "@/types/trip";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useTrips() {
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -32,12 +33,13 @@ export function useTrips() {
         fare: trip.base_price,
         availableSeats: 36, // This would need to come from real seat data
         totalSeats: 36,
-        busType: "Sleeper",
+        busType: "Sleeper" as "Sleeper" | "Seater" | "Mixed",
         description: trip.trip_details?.description || "",
         amenities: trip.trip_details?.amenities || [],
         itinerary: trip.trip_details?.itinerary || [],
         photos: trip.trip_images || [],
-        imageUrl: trip.trip_images?.[0]?.url
+        imageUrl: trip.trip_images?.[0]?.url,
+        formattedDate: "" // This will be populated by the createTrip function
       }));
       
       setTrips(formattedTrips);
