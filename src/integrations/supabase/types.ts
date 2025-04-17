@@ -174,6 +174,79 @@ export type Database = {
           },
         ]
       }
+      trip_details: {
+        Row: {
+          amenities: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          itinerary: Json | null
+          trip_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amenities?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          itinerary?: Json | null
+          trip_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amenities?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          itinerary?: Json | null
+          trip_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_details_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: true
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_images: {
+        Row: {
+          created_at: string | null
+          id: string
+          title: string | null
+          trip_id: string | null
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          trip_id?: string | null
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          trip_id?: string | null
+          updated_at?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_images_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trips: {
         Row: {
           arrival_date: string

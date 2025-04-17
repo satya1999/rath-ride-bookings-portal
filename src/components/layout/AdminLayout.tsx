@@ -1,4 +1,3 @@
-
 import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -39,7 +38,6 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Redirect to login if not authenticated
     if (!isLoading && !user) {
       toast({
         title: "Authentication required",
@@ -48,8 +46,6 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       });
       navigate("/login");
     }
-    // Check if user has admin role (this is placeholder - implement proper role check)
-    // TODO: Implement proper admin role check when roles are available
   }, [user, isLoading, navigate, toast]);
 
   const handleSignOut = async () => {
@@ -128,6 +124,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                       <a href="/admin/bus-layouts">
                         <BusFront />
                         <span>Bus Layouts</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Trips">
+                      <a href="/admin/trips">
+                        <BusFront />
+                        <span>Trips</span>
                       </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
