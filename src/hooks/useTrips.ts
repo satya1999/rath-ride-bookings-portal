@@ -22,25 +22,47 @@ export function useTrips() {
       
       if (error) throw error;
       
-      const formattedTrips = tripsData.map((trip) => ({
-        id: trip.id,
-        title: trip.name,
-        from: trip.source,
-        to: trip.destination,
-        date: new Date(trip.departure_date),
-        departureTime: trip.departure_time,
-        arrivalTime: trip.arrival_time,
-        fare: trip.base_price,
-        availableSeats: 36, // This would need to come from real seat data
-        totalSeats: 36,
-        busType: "Sleeper" as "Sleeper" | "Seater" | "Mixed",
-        description: trip.trip_details?.description || "",
-        amenities: trip.trip_details?.amenities || [],
-        itinerary: trip.trip_details?.itinerary || [],
-        photos: trip.trip_images || [],
-        imageUrl: trip.trip_images?.[0]?.url,
-        formattedDate: "" // This will be populated by the createTrip function
-      }));
+      const formattedTrips: Trip[] = tripsData.map((trip) => {
+        // Ensure amenities is always a string array
+        const amenities = trip.trip_details?.amenities || [];
+        let formattedAmenities: string[] = [];
+        
+        if (Array.isArray(amenities)) {
+          formattedAmenities = amenities.map(item => String(item));
+        }
+        
+        // Ensure itinerary is properly formatted
+        const itinerary = trip.trip_details?.itinerary || [];
+        let formattedItinerary: Itinerary[] = [];
+        
+        if (Array.isArray(itinerary)) {
+          formattedItinerary = itinerary.map(item => ({
+            day: typeof item.day === 'number' ? item.day : 1,
+            title: String(item.title || ''),
+            description: String(item.description || '')
+          }));
+        }
+        
+        return {
+          id: trip.id,
+          title: trip.name,
+          from: trip.source,
+          to: trip.destination,
+          date: new Date(trip.departure_date),
+          departureTime: trip.departure_time,
+          arrivalTime: trip.arrival_time,
+          fare: trip.base_price,
+          availableSeats: 36, // This would need to come from real seat data
+          totalSeats: 36,
+          busType: "Sleeper" as "Sleeper" | "Seater" | "Mixed",
+          description: trip.trip_details?.description || "",
+          amenities: formattedAmenities,
+          itinerary: formattedItinerary,
+          photos: trip.trip_images || [],
+          imageUrl: trip.trip_images?.[0]?.url,
+          formattedDate: "" // This will be populated by the createTrip function
+        };
+      });
       
       setTrips(formattedTrips);
     } catch (error) {
