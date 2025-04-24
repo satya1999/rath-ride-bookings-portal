@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import TripCard from "@/components/trips/TripCard";
@@ -58,7 +57,7 @@ const featuredTrips = [
     availableSeats: 28,
     totalSeats: 36,
     busType: "Sleeper" as "Seater" | "Sleeper" | "Mixed",
-    imageUrl: "https://source.unsplash.com/random/300x200/?kedarnath",
+    imageUrl: "https://images.unsplash.com/photo-1576033717941-c403544d338b?q=80&w=1200&auto=format&fit=crop&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     description: "14 Days / 13 Nights | Pure veg Lunch and Dinner daily | Dharamshala Stay",
   },
   {
@@ -72,7 +71,7 @@ const featuredTrips = [
     availableSeats: 24,
     totalSeats: 36,
     busType: "Sleeper" as "Seater" | "Sleeper" | "Mixed",
-    imageUrl: "https://source.unsplash.com/random/300x200/?mathura",
+    imageUrl: "https://images.unsplash.com/photo-1652125567123-c3014988d531?q=80&w=1200&auto=format&fit=crop&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     description: "8 Days / 7 Nights | Satvik Lunch and Dinner included | Dharamshala Stay",
   },
   {
@@ -86,7 +85,7 @@ const featuredTrips = [
     availableSeats: 32,
     totalSeats: 36,
     busType: "Sleeper" as "Seater" | "Sleeper" | "Mixed",
-    imageUrl: "https://source.unsplash.com/random/300x200/?kashi",
+    imageUrl: "https://images.unsplash.com/photo-1622557890856-4205008d89e0?q=80&w=1200&auto=format&fit=crop&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     description: "7 Days / 6 Nights | Daily hot Lunch & Dinner provided | Dharamshala Stay",
   }
 ];

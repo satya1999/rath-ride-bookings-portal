@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Clock, IndianRupee, Users } from "lucide-react";
+import { Calendar, MapPin, Clock, IndianRupee, Users, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -34,15 +33,20 @@ const TripCard = ({
   availableSeats,
   totalSeats,
   busType,
-  imageUrl = "https://source.unsplash.com/random/300x200/?bus",
+  imageUrl,
   className,
   description
 }: TripCardProps) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
 
   const handleViewDetails = () => {
     navigate(`/trips/${id}`);
+  };
+
+  const handleImageError = () => {
+    setImageLoadError(true);
   };
 
   return (
@@ -56,13 +60,20 @@ const TripCard = ({
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative">
-        <div 
-          className="h-48 w-full bg-cover bg-center transition-transform duration-300"
-          style={{ 
-            backgroundImage: `url(${imageUrl})`,
-            transform: isHovered ? "scale(1.05)" : "scale(1)",
-          }}
-        />
+        {!imageLoadError ? (
+          <div 
+            className="h-48 w-full bg-cover bg-center transition-transform duration-300"
+            style={{ 
+              backgroundImage: `url(${imageUrl})`,
+              transform: isHovered ? "scale(1.05)" : "scale(1)",
+            }}
+            onError={handleImageError}
+          />
+        ) : (
+          <div className="h-48 w-full bg-gray-200 flex items-center justify-center">
+            <ImageIcon className="h-12 w-12 text-gray-500" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/70" />
         <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
           <h3 className="font-bold text-xl truncate">{title}</h3>
