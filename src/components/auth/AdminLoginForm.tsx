@@ -15,10 +15,12 @@ const AdminLoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [debug, setDebug] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setDebug("");
 
     try {
       // Sign in with email and password
@@ -29,6 +31,10 @@ const AdminLoginForm = () => {
       
       if (authError) throw authError;
 
+      // Debug info
+      setDebug(`User authenticated. User ID: ${authData.user.id}`);
+      console.log("Authenticated user:", authData.user);
+      
       // Check if user has admin role
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
@@ -37,9 +43,15 @@ const AdminLoginForm = () => {
         .eq('role', 'admin')
         .single();
       
-      if (roleError || !roleData) {
+      if (roleError) {
+        console.error("Role check error:", roleError);
+        setDebug(prev => `${prev}\nRole check error: ${roleError.message}`);
+      }
+      
+      if (!roleData) {
         // If no admin role found, sign them out
         await supabase.auth.signOut();
+        setDebug(prev => `${prev}\nNo admin role found for this user.`);
         throw new Error("You are not authorized to access the admin panel");
       }
 
@@ -48,6 +60,7 @@ const AdminLoginForm = () => {
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast.error(error.message);
+      setDebug(prev => `${prev}\nError: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -97,6 +110,15 @@ const AdminLoginForm = () => {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Signing in..." : "Access Admin Panel"}
           </Button>
+          
+          {debug && (
+            <div className="mt-4 p-3 bg-muted rounded-md text-xs font-mono overflow-auto max-h-32">
+              <p className="font-semibold mb-1">Debug Info:</p>
+              {debug.split('\n').map((line, i) => (
+                <div key={i}>{line}</div>
+              ))}
+            </div>
+          )}
         </form>
       </CardContent>
       <CardFooter className="flex flex-col">
