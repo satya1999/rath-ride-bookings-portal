@@ -53,5 +53,60 @@ export const userService = {
     
     if (error) throw error;
     return true;
+  },
+  
+  checkAdminRole: async (userId: string) => {
+    // Check if the user has admin role
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.error("Admin check error:", error);
+      throw error;
+    }
+    
+    return !!data;
+  },
+  
+  createAdminUser: async (email: string, password: string) => {
+    // First, create the user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    
+    if (authError) throw authError;
+    
+    if (!authData.user) {
+      throw new Error("Failed to create user");
+    }
+    
+    // Then, assign admin role
+    const { error: roleError } = await supabase
+      .from('user_roles')
+      .insert([
+        { user_id: authData.user.id, role: 'admin' }
+      ]);
+    
+    if (roleError) throw roleError;
+    
+    return {
+      message: "Admin user created successfully",
+      userId: authData.user.id
+    };
+  },
+  
+  ensureAdminExists: async () => {
+    // Check if at least one admin exists
+    const { count, error } = await supabase
+      .from('user_roles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'admin');
+    
+    return { hasAdmin: count && count > 0, error };
   }
 };

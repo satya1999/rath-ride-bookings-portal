@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ShieldCheck } from "lucide-react";
+import { userService } from "@/services";
 
 const AdminLoginForm = () => {
   const navigate = useNavigate();
@@ -35,32 +35,44 @@ const AdminLoginForm = () => {
       setDebug(`User authenticated. User ID: ${authData.user.id}`);
       console.log("Authenticated user:", authData.user);
       
-      // Check if user has admin role
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', authData.user.id)
-        .eq('role', 'admin')
-        .single();
+      // Check if user has admin role using the service
+      const isAdmin = await userService.checkAdminRole(authData.user.id);
       
-      if (roleError) {
-        console.error("Role check error:", roleError);
-        setDebug(prev => `${prev}\nRole check error: ${roleError.message}`);
-      }
-      
-      if (!roleData) {
+      if (!isAdmin) {
         // If no admin role found, sign them out
         await supabase.auth.signOut();
         setDebug(prev => `${prev}\nNo admin role found for this user.`);
         throw new Error("You are not authorized to access the admin panel");
       }
 
+      setDebug(prev => `${prev}\nAdmin role confirmed!`);
       toast.success("Admin login successful");
       navigate("/admin");
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast.error(error.message);
       setDebug(prev => `${prev}\nError: ${error.message}`);
+      
+      // If this is a first-time setup and email is admin@example.com, try to create the admin
+      if (email === "admin@example.com" && error.message.includes("not authorized")) {
+        try {
+          setDebug(prev => `${prev}\nAttempting to create initial admin user...`);
+          const { hasAdmin, error: checkError } = await userService.ensureAdminExists();
+          
+          if (checkError) {
+            setDebug(prev => `${prev}\nError checking admin existence: ${checkError.message}`);
+          } else if (!hasAdmin) {
+            // Create the first admin user
+            setDebug(prev => `${prev}\nNo admin users found. Creating first admin...`);
+            await userService.createAdminUser(email, password);
+            setDebug(prev => `${prev}\nAdmin user created successfully! Please log in again.`);
+            toast.success("Admin account created! Please log in again.");
+          }
+        } catch (setupError: any) {
+          console.error("Admin setup error:", setupError);
+          setDebug(prev => `${prev}\nSetup error: ${setupError.message}`);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
