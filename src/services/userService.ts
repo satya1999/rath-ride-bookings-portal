@@ -3,20 +3,37 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const userService = {
   getUsers: async () => {
-    const { data, error } = await supabase
+    // First, get user profiles
+    const { data: profiles, error: profilesError } = await supabase
       .from('user_profiles')
       .select(`
         id,
         first_name,
         last_name,
         phone,
-        user_roles(id, role),
         created_at,
         updated_at
       `);
 
-    if (error) throw error;
-    return data || [];
+    if (profilesError) throw profilesError;
+    
+    // Now get user roles separately
+    const { data: roles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('*');
+    
+    if (rolesError) throw rolesError;
+    
+    // Combine the data
+    const users = profiles.map(profile => {
+      const userRoles = roles.filter(role => role.user_id === profile.id);
+      return {
+        ...profile,
+        user_roles: userRoles
+      };
+    });
+
+    return users || [];
   },
 
   updateUserStatus: async (userId: string, status: string) => {

@@ -13,15 +13,22 @@ export interface User {
   joined: string;
 }
 
-// Define a type for the user data returned from the API
-interface UserProfileData {
+// Define types for the data returned from the API
+interface UserProfile {
   id: string;
   first_name: string | null;
   last_name: string | null;
   phone: string | null;
   created_at: string;
   updated_at: string;
-  user_roles: Array<{id: string; role: string}> | null;
+  user_roles?: UserRole[];
+}
+
+interface UserRole {
+  id: string;
+  user_id: string;
+  role: string;
+  created_at: string;
 }
 
 export function useUsers() {
@@ -31,7 +38,7 @@ export function useUsers() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const data = await userService.getUsers() as UserProfileData[];
+      const data = await userService.getUsers();
       
       // Format the data for display
       const formattedUsers = data.map(user => {
