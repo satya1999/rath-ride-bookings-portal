@@ -23,14 +23,22 @@ export function useUsers() {
       const data = await userService.getUsers();
       
       // Format the data for display
-      const formattedUsers = data.map(user => ({
-        id: user.id,
-        first_name: user.first_name || "",
-        last_name: user.last_name || "",
-        role: user.user_roles?.[0]?.role || "user",
-        status: user.user_roles?.[0]?.status || "active",
-        joined: user.created_at
-      }));
+      const formattedUsers = data.map(user => {
+        // Extract the role from user_roles array if it exists
+        const userRole = user.user_roles && user.user_roles[0] ? 
+          user.user_roles[0].role : "user";
+        
+        // Since we don't have a status field in the database yet,
+        // we'll default to "active" for all users
+        return {
+          id: user.id,
+          first_name: user.first_name || "",
+          last_name: user.last_name || "",
+          role: userRole,
+          status: "active", // Default status since we don't have it in DB yet
+          joined: user.created_at
+        };
+      });
       
       setUsers(formattedUsers);
     } catch (error) {
