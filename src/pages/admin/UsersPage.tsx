@@ -17,13 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { 
   Eye, 
   MoreHorizontal, 
@@ -35,117 +28,58 @@ import {
   UserX
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-
-// Mock data
-const users = [
-  {
-    id: "1",
-    name: "Rahul Sharma",
-    email: "rahul@example.com",
-    role: "User",
-    status: "active",
-    joined: "2024-01-15"
-  },
-  {
-    id: "2",
-    name: "Priya Patel",
-    email: "priya@example.com",
-    role: "User",
-    status: "active",
-    joined: "2024-02-03"
-  },
-  {
-    id: "3",
-    name: "Vikram Singh",
-    email: "vikram@example.com",
-    role: "User",
-    status: "inactive",
-    joined: "2024-02-15"
-  },
-  {
-    id: "4",
-    name: "Ananya Gupta",
-    email: "ananya@example.com",
-    role: "User",
-    status: "active",
-    joined: "2024-03-01"
-  },
-  {
-    id: "5",
-    name: "Mohammed Khan",
-    email: "mohammed@example.com",
-    role: "User",
-    status: "inactive",
-    joined: "2024-03-10"
-  }
-];
+import { useUsers } from "@/hooks/useUsers";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const UsersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const { users, loading, handleStatusChange, handleDeleteUser } = useUsers();
   
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      user.last_name.toLowerCase().includes(searchTerm.toLowerCase());
     
-    if (activeTab === "all") return matchesSearch;
-    if (activeTab === "active") return matchesSearch && user.status === "active";
-    if (activeTab === "inactive") return matchesSearch && user.status === "inactive";
-    
-    return matchesSearch;
+    if (statusFilter === "all") return matchesSearch;
+    return matchesSearch && user.status === statusFilter;
   });
 
   return (
     <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Users Management</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Add User
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New User</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label htmlFor="name">Name</label>
-                <Input id="name" placeholder="Full name" />
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="email">Email</label>
-                <Input id="email" type="email" placeholder="Email address" />
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="password">Password</label>
-                <Input id="password" type="password" placeholder="Password" />
-              </div>
-            </div>
-            <Button className="w-full">Create User</Button>
-          </DialogContent>
-        </Dialog>
+        <Button>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Add User
+        </Button>
       </div>
 
       <div className="mb-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <Tabs 
-            defaultValue="all" 
-            value={activeTab} 
-            onValueChange={setActiveTab}
-            className="w-full md:w-auto"
-          >
-            <TabsList>
-              <TabsTrigger value="all">All Users</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="inactive">Inactive</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant={statusFilter === "all" ? "default" : "outline"}
+              onClick={() => setStatusFilter("all")}
+            >
+              All
+            </Button>
+            <Button 
+              variant={statusFilter === "active" ? "default" : "outline"}
+              className={statusFilter === "active" ? "bg-green-600" : ""}
+              onClick={() => setStatusFilter("active")}
+            >
+              Active
+            </Button>
+            <Button 
+              variant={statusFilter === "inactive" ? "default" : "outline"}
+              className={statusFilter === "inactive" ? "bg-red-500" : ""}
+              onClick={() => setStatusFilter("inactive")}
+            >
+              Inactive
+            </Button>
+          </div>
           
           <div className="relative w-full md:w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -164,18 +98,30 @@ const UsersPage = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.length > 0 ? (
+            {loading ? (
+              Array(5).fill(0).map((_, idx) => (
+                <TableRow key={idx}>
+                  <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[70px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                </TableRow>
+              ))
+            ) : filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell className="font-medium">
+                    {user.first_name} {user.last_name}
+                  </TableCell>
+                  <TableCell>{user.role}</TableCell>
                   <TableCell>
                     <Badge
                       variant={user.status === "active" ? "default" : "secondary"}
@@ -195,24 +141,33 @@ const UsersPage = () => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>
                           <Eye className="mr-2 h-4 w-4" />
-                          <span>View</span>
+                          <span>View Details</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Edit className="mr-2 h-4 w-4" />
                           <span>Edit</span>
                         </DropdownMenuItem>
                         {user.status === "active" ? (
-                          <DropdownMenuItem className="text-amber-600">
+                          <DropdownMenuItem 
+                            className="text-amber-600"
+                            onClick={() => handleStatusChange(user.id, "inactive")}
+                          >
                             <UserX className="mr-2 h-4 w-4" />
                             <span>Deactivate</span>
                           </DropdownMenuItem>
                         ) : (
-                          <DropdownMenuItem className="text-green-600">
+                          <DropdownMenuItem 
+                            className="text-green-600"
+                            onClick={() => handleStatusChange(user.id, "active")}
+                          >
                             <UserCheck className="mr-2 h-4 w-4" />
                             <span>Activate</span>
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem className="text-destructive">
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => handleDeleteUser(user.id)}
+                        >
                           <Trash className="mr-2 h-4 w-4" />
                           <span>Delete</span>
                         </DropdownMenuItem>

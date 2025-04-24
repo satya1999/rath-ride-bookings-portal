@@ -27,15 +27,15 @@ export function useUsers() {
         id: user.id,
         first_name: user.first_name || "",
         last_name: user.last_name || "",
-        email: "user@example.com", // We don't get emails from user_profiles directly
-        role: user.role,
-        status: user.status,
+        role: user.user_roles?.[0]?.role || "user",
+        status: user.user_roles?.[0]?.status || "active",
         joined: user.created_at
       }));
       
       setUsers(formattedUsers);
     } catch (error) {
-      console.error("Error in useUsers:", error);
+      console.error("Error fetching users:", error);
+      toast.error("Failed to fetch users");
     } finally {
       setLoading(false);
     }
@@ -47,21 +47,39 @@ export function useUsers() {
   }, []);
   
   const handleStatusChange = async (userId: string, newStatus: string) => {
-    // Implement when we add user status updates
-    toast.success(`User status changed to ${newStatus}`);
-    
-    // Update local state
-    setUsers(
-      users.map(user => 
-        user.id === userId ? { ...user, status: newStatus } : user
-      )
-    );
+    try {
+      await userService.updateUserStatus(userId, newStatus);
+      toast.success(`User status updated to ${newStatus}`);
+      
+      // Update local state
+      setUsers(
+        users.map(user => 
+          user.id === userId ? { ...user, status: newStatus } : user
+        )
+      );
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      toast.error("Failed to update user status");
+    }
+  };
+  
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await userService.deleteUser(userId);
+      toast.success("User deleted successfully");
+      // Update local state
+      setUsers(users.filter(user => user.id !== userId));
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Failed to delete user");
+    }
   };
   
   return {
     users,
     loading,
     handleStatusChange,
+    handleDeleteUser,
     refetch: fetchUsers
   };
 }
