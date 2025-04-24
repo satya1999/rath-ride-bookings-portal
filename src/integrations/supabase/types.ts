@@ -174,6 +174,201 @@ export type Database = {
           },
         ]
       }
+      emotions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      trade_emotions: {
+        Row: {
+          created_at: string
+          emotion_id: string | null
+          id: string
+          timing: string
+          trade_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          emotion_id?: string | null
+          id?: string
+          timing: string
+          trade_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          emotion_id?: string | null
+          id?: string
+          timing?: string
+          trade_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_emotions_emotion_id_fkey"
+            columns: ["emotion_id"]
+            isOneToOne: false
+            referencedRelation: "emotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_emotions_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_tags: {
+        Row: {
+          created_at: string
+          id: string
+          tag_id: string | null
+          trade_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tag_id?: string | null
+          trade_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tag_id?: string | null
+          trade_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_tags_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trader_notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_pinned: boolean | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trades: {
+        Row: {
+          asset: string
+          created_at: string
+          date: string
+          direction: string
+          entry_price: number
+          exit_price: number
+          id: string
+          notes: string | null
+          reward: number | null
+          risk: number | null
+          screenshot_url: string | null
+          time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset: string
+          created_at?: string
+          date: string
+          direction: string
+          entry_price: number
+          exit_price: number
+          id?: string
+          notes?: string | null
+          reward?: number | null
+          risk?: number | null
+          screenshot_url?: string | null
+          time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset?: string
+          created_at?: string
+          date?: string
+          direction?: string
+          entry_price?: number
+          exit_price?: number
+          id?: string
+          notes?: string | null
+          reward?: number | null
+          risk?: number | null
+          screenshot_url?: string | null
+          time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       trip_details: {
         Row: {
           amenities: Json | null
