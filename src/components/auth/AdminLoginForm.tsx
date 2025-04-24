@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ShieldCheck } from "lucide-react";
 
 const AdminLoginForm = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,40 +21,33 @@ const AdminLoginForm = () => {
     setIsLoading(true);
 
     try {
-      // Use password-based authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Sign in with email and password
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
-      if (error) throw error;
+      if (authError) throw authError;
+
+      // Check if user has admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .eq('role', 'admin')
+        .single();
       
-      // Check if user has admin role (this is a simplified example)
-      // In a real application, you would check against a roles table or metadata
-      const adminEmails = ['admin@example.com']; // Example admin email
-      
-      if (data.user && adminEmails.includes(data.user.email || '')) {
-        toast({
-          title: "Admin login successful",
-          description: "Welcome to the admin dashboard",
-        });
-        navigate("/admin");
-      } else {
-        // If not an admin, sign them out
+      if (roleError || !roleData) {
+        // If no admin role found, sign them out
         await supabase.auth.signOut();
-        toast({
-          title: "Access denied",
-          description: "You are not authorized to access the admin panel",
-          variant: "destructive",
-        });
+        throw new Error("You are not authorized to access the admin panel");
       }
+
+      toast.success("Admin login successful");
+      navigate("/admin");
     } catch (error: any) {
       console.error("Admin login error:", error);
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
