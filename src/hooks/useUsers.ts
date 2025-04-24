@@ -13,6 +13,17 @@ export interface User {
   joined: string;
 }
 
+// Define a type for the user data returned from the API
+interface UserProfileData {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  created_at: string;
+  updated_at: string;
+  user_roles: Array<{id: string; role: string}> | null;
+}
+
 export function useUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,12 +31,12 @@ export function useUsers() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const data = await userService.getUsers();
+      const data = await userService.getUsers() as UserProfileData[];
       
       // Format the data for display
       const formattedUsers = data.map(user => {
         // Extract the role from user_roles array if it exists
-        const userRole = user.user_roles && user.user_roles[0] ? 
+        const userRole = user.user_roles && user.user_roles.length > 0 ? 
           user.user_roles[0].role : "user";
         
         // Since we don't have a status field in the database yet,

@@ -27,8 +27,13 @@ export const userService = {
   },
 
   deleteUser: async (userId: string) => {
-    // Using a normal RPC call instead of admin.deleteUser since that requires additional permissions
-    const { error } = await supabase.rpc('delete_user', { user_id: userId });
+    // Using a custom function call since there's no direct deleteUser API
+    // We'll need to implement this function on the Supabase side
+    const { error } = await supabase
+      .from('user_profiles')
+      .delete()
+      .eq('id', userId);
+    
     if (error) throw error;
     return true;
   }
