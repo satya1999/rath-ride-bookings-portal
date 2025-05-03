@@ -73,51 +73,42 @@ export const userService = {
   },
   
   createAdminUser: async (email: string, password: string) => {
-    // First, check if user already exists
-    // Instead of using getUserByEmail which doesn't exist, we'll use a different approach
+    // We can't query auth.users directly through the client API
+    // Instead, we'll attempt a login and handle various scenarios
     
-    // Check if a user with this email already exists in auth system
-    const { data: existingUsers, error: lookupError } = await supabase
-      .from('auth.users') // This might not work directly, but we're trying a safer approach
-      .select('id')
-      .eq('email', email)
-      .maybeSingle()
-      .catch(() => ({ data: null, error: null })); // Silently handle if this query isn't allowed
+    let userId: string;
     
-    let userId;
+    // Try to sign in with the provided credentials to see if the user exists
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    }).catch(() => ({ data: { user: null }, error: { message: "Login failed" } }));
     
-    // If we couldn't determine if user exists or doesn't exist, create a new one
-    if (!existingUsers) {
-      // Create the user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      
-      if (authError) throw authError;
-      
-      if (!authData.user) {
-        throw new Error("Failed to create user");
-      }
-      
-      userId = authData.user.id;
-    } else if (existingUsers) {
-      // User exists, get their ID
-      userId = existingUsers.id;
+    if (signInData && signInData.user) {
+      // User exists and credentials are valid
+      userId = signInData.user.id;
+      console.log("Existing user authenticated:", userId);
     } else {
-      // User doesn't exist, create them
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // User might not exist or password is incorrect
+      // Try to create a new user
+      console.log("No existing user or invalid credentials, trying to create user");
+      
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
       });
       
-      if (authError) throw authError;
+      if (signUpError) {
+        console.error("Failed to create user:", signUpError);
+        throw signUpError;
+      }
       
-      if (!authData.user) {
+      if (!signUpData?.user) {
         throw new Error("Failed to create user");
       }
       
-      userId = authData.user.id;
+      userId = signUpData.user.id;
+      console.log("New user created:", userId);
     }
     
     // Then, check if role already exists
@@ -130,6 +121,7 @@ export const userService = {
     
     // If role doesn't exist, assign admin role
     if (!existingRole) {
+      console.log("Assigning admin role to user:", userId);
       const { error: roleError } = await supabase
         .from('user_roles')
         .insert([
@@ -137,6 +129,8 @@ export const userService = {
         ]);
       
       if (roleError) throw roleError;
+    } else {
+      console.log("User already has admin role:", userId);
     }
     
     return {
