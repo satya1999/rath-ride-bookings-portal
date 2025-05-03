@@ -73,30 +73,53 @@ export const userService = {
   },
   
   createAdminUser: async (email: string, password: string) => {
-    // First, create the user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    // First, check if user already exists
+    const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(email)
+      .catch(() => ({ data: { user: null }, error: null })); // Silently handle if admin API not available
     
-    if (authError) throw authError;
+    let userId;
     
-    if (!authData.user) {
-      throw new Error("Failed to create user");
+    // If user doesn't exist, create them
+    if (!existingUser?.user) {
+      // Create the user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (authError) throw authError;
+      
+      if (!authData.user) {
+        throw new Error("Failed to create user");
+      }
+      
+      userId = authData.user.id;
+    } else {
+      userId = existingUser.user.id;
     }
     
-    // Then, assign admin role
-    const { error: roleError } = await supabase
+    // Then, check if role already exists
+    const { data: existingRole } = await supabase
       .from('user_roles')
-      .insert([
-        { user_id: authData.user.id, role: 'admin' }
-      ]);
+      .select('id')
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .single();
     
-    if (roleError) throw roleError;
+    // If role doesn't exist, assign admin role
+    if (!existingRole) {
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert([
+          { user_id: userId, role: 'admin' }
+        ]);
+      
+      if (roleError) throw roleError;
+    }
     
     return {
-      message: "Admin user created successfully",
-      userId: authData.user.id
+      message: "Admin user created/updated successfully",
+      userId: userId
     };
   },
   

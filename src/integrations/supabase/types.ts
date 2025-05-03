@@ -195,6 +195,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string | null
+          role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          name?: string | null
+          role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string | null
+          role?: string | null
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           created_at: string
@@ -505,6 +526,7 @@ export type Database = {
           id: string
           last_name: string | null
           phone: string | null
+          role: string | null
           updated_at: string
         }
         Insert: {
@@ -513,6 +535,7 @@ export type Database = {
           id: string
           last_name?: string | null
           phone?: string | null
+          role?: string | null
           updated_at?: string
         }
         Update: {
@@ -521,6 +544,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone?: string | null
+          role?: string | null
           updated_at?: string
         }
         Relationships: []
