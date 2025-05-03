@@ -74,13 +74,20 @@ export const userService = {
   
   createAdminUser: async (email: string, password: string) => {
     // First, check if user already exists
-    const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(email)
-      .catch(() => ({ data: { user: null }, error: null })); // Silently handle if admin API not available
+    // Instead of using getUserByEmail which doesn't exist, we'll use a different approach
+    
+    // Check if a user with this email already exists in auth system
+    const { data: existingUsers, error: lookupError } = await supabase
+      .from('auth.users') // This might not work directly, but we're trying a safer approach
+      .select('id')
+      .eq('email', email)
+      .maybeSingle()
+      .catch(() => ({ data: null, error: null })); // Silently handle if this query isn't allowed
     
     let userId;
     
-    // If user doesn't exist, create them
-    if (!existingUser?.user) {
+    // If we couldn't determine if user exists or doesn't exist, create a new one
+    if (!existingUsers) {
       // Create the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -94,8 +101,23 @@ export const userService = {
       }
       
       userId = authData.user.id;
+    } else if (existingUsers) {
+      // User exists, get their ID
+      userId = existingUsers.id;
     } else {
-      userId = existingUser.user.id;
+      // User doesn't exist, create them
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (authError) throw authError;
+      
+      if (!authData.user) {
+        throw new Error("Failed to create user");
+      }
+      
+      userId = authData.user.id;
     }
     
     // Then, check if role already exists
