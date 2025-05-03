@@ -62,6 +62,7 @@ const AdminLoginForm = () => {
       
       // Check if user has admin role using the service
       const isAdmin = await userService.checkAdminRole(authData.user.id);
+      console.log("Admin role check result:", isAdmin);
       
       if (!isAdmin) {
         // If no admin role found but we're using admin@example.com, try to assign admin role
@@ -93,7 +94,10 @@ const AdminLoginForm = () => {
       // Set admin session flag in local storage to help distinguish admin logins
       localStorage.setItem("isAdminSession", "true");
       
-      navigate("/admin");
+      // Force a small delay to ensure local storage is set before navigation
+      setTimeout(() => {
+        navigate("/admin");
+      }, 100);
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast.error(error.message);

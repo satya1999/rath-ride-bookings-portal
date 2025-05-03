@@ -17,6 +17,8 @@ const DashboardPage = () => {
   const dashboardData = useDashboardData(bookings);
   
   useEffect(() => {
+    console.log("DashboardPage - Auth state:", { user: !!user, isAdmin, isLoading });
+    
     // If still loading, do nothing
     if (isLoading) return;
 

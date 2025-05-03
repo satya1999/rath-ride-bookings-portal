@@ -1,9 +1,9 @@
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import {
   SidebarProvider,
   Sidebar,
@@ -36,15 +36,17 @@ interface AdminLayoutProps {
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { user, isLoading, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   useEffect(() => {
+    console.log("AdminLayout - Auth state:", { user: !!user, isAdmin, isLoading });
     // If still loading, do nothing
     if (isLoading) return;
 
     // If not authenticated at all
     if (!user) {
-      toast({
+      console.log("AdminLayout - No user, redirecting to login");
+      uiToast({
         title: "Authentication required",
         description: "Please login to access the admin panel.",
         variant: "destructive"
@@ -55,7 +57,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
     // If authenticated but not an admin
     if (user && !isAdmin) {
-      toast({
+      console.log("AdminLayout - User not admin, redirecting to dashboard");
+      uiToast({
         title: "Access denied",
         description: "You don't have permission to access the admin panel.",
         variant: "destructive"
@@ -65,18 +68,28 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       navigate("/dashboard");
       return;
     }
-  }, [user, isLoading, isAdmin, navigate, toast]);
+
+    // If admin but not in admin session
+    if (user && isAdmin && localStorage.getItem("isAdminSession") !== "true") {
+      console.log("AdminLayout - Admin but not in admin session, setting flag");
+      // This is an admin user accessing admin pages, ensure the flag is set
+      localStorage.setItem("isAdminSession", "true");
+    }
+  }, [user, isLoading, isAdmin, navigate, uiToast]);
 
   const handleSignOut = async () => {
     localStorage.removeItem("isAdminSession");
     await signOut();
+    toast("Signed out successfully");
     navigate("/admin-login");
   };
 
+  // Show loading state while checking auth
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
+  // Don't render anything if not authenticated as admin
   if (!user || !isAdmin) {
     return null;
   }

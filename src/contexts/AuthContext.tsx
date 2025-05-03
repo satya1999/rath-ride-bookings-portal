@@ -31,6 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const hasAdminRole = await userService.checkAdminRole(userId);
       setIsAdmin(hasAdminRole);
+      console.log("Admin role check result:", hasAdminRole);
       return hasAdminRole;
     } catch (error) {
       console.error("Error checking admin role:", error);
@@ -40,23 +41,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    console.log("AuthContext initialized. Current path:", location.pathname);
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_IN' && session?.user) {
           // Check if user has admin role
           const isAdminUser = await checkAdminRole(session.user.id);
+          console.log("Is admin user:", isAdminUser);
           
           // Check if the login originated from admin login page
           const isAdminSession = localStorage.getItem("isAdminSession") === "true";
+          console.log("Is admin session:", isAdminSession);
           
           if (isAdminUser && isAdminSession) {
+            console.log("Redirecting to admin dashboard");
             toast.success("Admin login successful!");
             navigate("/admin");
           } else if (!isAdminSession) {
+            console.log("Redirecting to agent dashboard");
             toast.success("Logged in successfully!");
             navigate("/dashboard");
           }
@@ -71,20 +79,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // THEN check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log("Initial session check:", session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
         // Check if user has admin role
-        await checkAdminRole(session.user.id);
+        const isAdminUser = await checkAdminRole(session.user.id);
+        console.log("Initial admin check result:", isAdminUser);
         
         // Check if we're on login page and should redirect
         const isAdminSession = localStorage.getItem("isAdminSession") === "true";
+        console.log("Is stored admin session:", isAdminSession);
         
         if (location.pathname === '/login' && !isAdminSession) {
           navigate("/dashboard");
-        } else if (location.pathname === '/admin-login' && isAdmin) {
+        } else if (location.pathname === '/admin-login' && isAdminUser && isAdminSession) {
           navigate("/admin");
+        } else if (location.pathname.startsWith('/admin') && !isAdminUser) {
+          // Redirect non-admin users away from admin pages
+          toast.error("You don't have permission to access the admin panel");
+          navigate("/dashboard");
+        } else if (location.pathname.startsWith('/admin') && isAdminUser && !isAdminSession) {
+          // Update the session flag if user is admin but the flag isn't set
+          localStorage.setItem("isAdminSession", "true");
         }
       }
       

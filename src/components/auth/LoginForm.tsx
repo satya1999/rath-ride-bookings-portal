@@ -25,22 +25,28 @@ const LoginForm = () => {
 
     try {
       // Use password-based authentication
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (error) throw error;
       
+      console.log("Login successful:", data);
+      
       // Clear any admin session flag that might be present
       localStorage.removeItem("isAdminSession");
       
       // Redirect to dashboard - added automatic redirection here
-      navigate("/dashboard");
       toast({
         title: "Login successful",
         description: "Welcome to your agent dashboard",
       });
+      
+      // Small delay to ensure state updates before navigation
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
