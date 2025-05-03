@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,7 @@ const AdminLoginForm = () => {
       // Try direct login first - much faster
       setDebug(prev => `${prev}\nAttempting to sign in directly...`);
       
+      let loginData;
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -51,13 +51,14 @@ const AdminLoginForm = () => {
           if (retryError) throw retryError;
           
           setDebug(prev => `${prev}\nAuthenticated successfully after retry.`);
-          authData = retryData;
+          loginData = retryData;
         } catch (setupError: any) {
           setDebug(prev => `${prev}\nAdmin setup error: ${setupError.message}`);
           throw authError; // Throw the original error
         }
       } else {
         setDebug(prev => `${prev}\nAuthenticated successfully on first attempt!`);
+        loginData = authData;
       }
       
       // Set admin session flag in local storage
