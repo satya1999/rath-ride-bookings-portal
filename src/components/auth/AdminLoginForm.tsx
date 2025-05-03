@@ -8,14 +8,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Info } from "lucide-react";
 import { userService } from "@/services";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const AdminLoginForm = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("admin@example.com");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("admin123");
   const [debug, setDebug] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,6 +124,19 @@ const AdminLoginForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <Alert className="mb-6 bg-muted/50">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <div className="text-sm">
+              <strong>Demo Admin Credentials</strong>
+              <div className="mt-1 font-mono text-xs bg-background p-2 rounded border">
+                Email: admin@example.com<br />
+                Password: admin123
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
