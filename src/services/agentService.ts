@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AddAgentFormValues } from "@/hooks/useAgents";
 
 export const agentService = {
   getAgents: async () => {
@@ -35,7 +36,7 @@ export const agentService = {
     }
   },
   
-  addAgent: async (agentData: any) => {
+  addAgent: async (agentData: AddAgentFormValues) => {
     try {
       // First, create auth user with Supabase auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
