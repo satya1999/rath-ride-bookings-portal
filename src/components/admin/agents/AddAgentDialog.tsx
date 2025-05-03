@@ -17,6 +17,7 @@ import * as z from "zod";
 import { TextField } from "@/components/admin/settings/form-fields/TextField";
 import { NumberField } from "@/components/admin/settings/form-fields/NumberField";
 import { toast } from "sonner";
+import { AddAgentFormValues } from "@/hooks/useAgents";
 
 // Form schema
 const addAgentSchema = z.object({
@@ -25,8 +26,6 @@ const addAgentSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   commission: z.coerce.number().min(0).max(100),
 });
-
-export type AddAgentFormValues = z.infer<typeof addAgentSchema>;
 
 interface AddAgentDialogProps {
   onAddAgent: (data: AddAgentFormValues) => Promise<boolean>;
