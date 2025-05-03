@@ -3,38 +3,34 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const userService = {
   getUsers: async () => {
-    // First, get user profiles
+    // Get users from the auth.users table via user_roles
     try {
-      const { data: profiles, error: profilesError } = await supabase
-        .from('user_profiles')
-        .select(`
-          id,
-          first_name,
-          last_name,
-          phone,
-          created_at,
-          updated_at
-        `);
-
-      if (profilesError) throw profilesError;
-      
-      // Now get user roles separately
-      const { data: roles, error: rolesError } = await supabase
+      // Get user roles first since this table exists in our schema
+      const { data: userRoles, error: userRolesError } = await supabase
         .from('user_roles')
         .select('*');
       
-      if (rolesError) throw rolesError;
+      if (userRolesError) throw userRolesError;
       
-      // Combine the data
-      const users = profiles.map(profile => {
-        const userRoles = roles.filter(role => role.user_id === profile.id);
+      // Extract unique user IDs from roles
+      const userIds = [...new Set(userRoles.map(role => role.user_id))];
+      
+      // For each user ID, get their metadata from Auth API
+      const usersData = userIds.map(userId => {
+        // Find all roles for this user
+        const roles = userRoles.filter(r => r.user_id === userId);
+        
         return {
-          ...profile,
-          user_roles: userRoles
+          id: userId,
+          first_name: "", // Default values since we don't have profiles table
+          last_name: "", 
+          created_at: roles[0]?.created_at || new Date().toISOString(),
+          updated_at: roles[0]?.created_at || new Date().toISOString(),
+          user_roles: roles
         };
       });
 
-      return users || [];
+      return usersData || [];
     } catch (err) {
       console.error("Error fetching users:", err);
       return [];
@@ -52,10 +48,18 @@ export const userService = {
     // Using a custom function call since there's no direct deleteUser API
     // We'll need to implement this function on the Supabase side
     try {
-      const { error } = await supabase
-        .from('user_profiles')
+      // Delete from user_roles first
+      const { error: roleError } = await supabase
+        .from('user_roles')
         .delete()
-        .eq('id', userId);
+        .eq('user_id', userId);
+      
+      if (roleError) {
+        console.error("Error deleting user roles:", roleError);
+      }
+      
+      // Now delete the auth user via Supabase auth API
+      const { error } = await supabase.auth.admin.deleteUser(userId);
       
       if (error) throw error;
       return true;
