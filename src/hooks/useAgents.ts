@@ -17,6 +17,14 @@ export interface Agent {
   commissions?: string;
 }
 
+export interface AddAgentFormValues {
+  name: string;
+  email: string;
+  phone?: string;
+  password: string;
+  commission: number;
+}
+
 export function useAgents() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +69,7 @@ export function useAgents() {
     }
   };
   
-  const handleAddAgent = async (data: any) => {
+  const handleAddAgent = async (data: AddAgentFormValues) => {
     const result = await agentService.addAgent(data);
     if (result) {
       toast.success(`Agent ${data.name} created successfully`);

@@ -37,14 +37,17 @@ export const agentService = {
   
   addAgent: async (agentData: any) => {
     try {
-      // First create auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // First, create auth user with Supabase auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: agentData.email,
         password: agentData.password,
-        email_confirm: true,
       });
       
       if (authError) throw authError;
+      
+      if (!authData?.user) {
+        throw new Error("Failed to create user account");
+      }
       
       // Then create agent record
       const { error } = await supabase
@@ -53,23 +56,27 @@ export const agentService = {
           id: authData.user.id,
           name: agentData.name,
           email: agentData.email,
+          phone: agentData.phone || null,
           commission_rate: agentData.commission || 10,
+          status: 'active'
         });
         
       if (error) throw error;
       
-      // Update user role to agent
+      // Add user_role
       const { error: roleError } = await supabase
         .from("user_roles")
-        .update({ role: "agent" })
-        .eq("user_id", authData.user.id);
+        .insert({
+          user_id: authData.user.id,
+          role: "agent"
+        });
         
       if (roleError) throw roleError;
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding agent:", error);
-      toast.error("Failed to add agent");
+      toast.error(error.message || "Failed to add agent");
       return false;
     }
   }

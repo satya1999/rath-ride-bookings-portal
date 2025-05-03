@@ -35,75 +35,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Mock data
-const commissionsData = [
-  {
-    id: "C1001",
-    agent: "Amit Kumar",
-    email: "amit@example.com",
-    bookingId: "B1001",
-    amount: "₹425",
-    date: "2025-04-05",
-    status: "paid"
-  },
-  {
-    id: "C1002",
-    agent: "Sneha Desai",
-    email: "sneha@example.com",
-    bookingId: "B1002",
-    amount: "₹380",
-    date: "2025-04-04",
-    status: "pending"
-  },
-  {
-    id: "C1003",
-    agent: "Rajiv Singh",
-    email: "rajiv@example.com",
-    bookingId: "B1003",
-    amount: "₹260",
-    date: "2025-04-03",
-    status: "pending"
-  },
-  {
-    id: "C1004",
-    agent: "Prakash Joshi",
-    email: "prakash@example.com",
-    bookingId: "B1005",
-    amount: "₹195",
-    date: "2025-04-02",
-    status: "paid"
-  },
-  {
-    id: "C1005",
-    agent: "Kavita Sharma",
-    email: "kavita@example.com",
-    bookingId: "B1006",
-    amount: "₹310",
-    date: "2025-04-01",
-    status: "rejected"
-  }
-];
-
-const totalStats = {
-  paid: "₹32,450",
-  pending: "₹18,760",
-  rejected: "₹5,120"
-};
+import { useCommissions } from "@/hooks/useCommissions";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const CommissionsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const { commissions, loading, handleStatusChange } = useCommissions();
   
-  const filteredCommissions = commissionsData.filter(commission => {
+  const filteredCommissions = commissions.filter(commission => {
     const matchesSearch = 
-      commission.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      commission.agent.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      commission.bookingId.toLowerCase().includes(searchTerm.toLowerCase());
+      commission.agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      commission.booking.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (statusFilter === "all") return matchesSearch;
     return matchesSearch && commission.status === statusFilter;
   });
+
+  // Calculate totals for stats
+  const totals = {
+    paid: commissions
+      .filter(c => c.status === "paid")
+      .reduce((sum, c) => sum + parseFloat(c.amount.replace("₹", "")), 0),
+    pending: commissions
+      .filter(c => c.status === "pending")
+      .reduce((sum, c) => sum + parseFloat(c.amount.replace("₹", "")), 0),
+    rejected: commissions
+      .filter(c => c.status === "rejected")
+      .reduce((sum, c) => sum + parseFloat(c.amount.replace("₹", "")), 0)
+  };
 
   return (
     <AdminLayout>
@@ -123,7 +83,7 @@ const CommissionsPage = () => {
             <div className="h-4 w-4 rounded-full bg-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalStats.paid}</div>
+            <div className="text-2xl font-bold">₹{totals.paid.toFixed(2)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -132,7 +92,7 @@ const CommissionsPage = () => {
             <div className="h-4 w-4 rounded-full bg-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalStats.pending}</div>
+            <div className="text-2xl font-bold">₹{totals.pending.toFixed(2)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -141,7 +101,7 @@ const CommissionsPage = () => {
             <div className="h-4 w-4 rounded-full bg-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalStats.rejected}</div>
+            <div className="text-2xl font-bold">₹{totals.rejected.toFixed(2)}</div>
           </CardContent>
         </Card>
       </div>
@@ -218,19 +178,31 @@ const CommissionsPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCommissions.length > 0 ? (
+            {loading ? (
+              Array(5).fill(0).map((_, idx) => (
+                <TableRow key={idx}>
+                  <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[60px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[60px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[40px]" /></TableCell>
+                </TableRow>
+              ))
+            ) : filteredCommissions.length > 0 ? (
               filteredCommissions.map((commission) => (
                 <TableRow key={commission.id}>
-                  <TableCell className="font-medium">{commission.id}</TableCell>
+                  <TableCell className="font-medium">{commission.id.substring(0, 8)}</TableCell>
                   <TableCell>
                     <div>
-                      <div>{commission.agent}</div>
-                      <div className="text-xs text-muted-foreground">{commission.email}</div>
+                      <div>{commission.agent.name}</div>
+                      <div className="text-xs text-muted-foreground">{commission.agent.email}</div>
                     </div>
                   </TableCell>
-                  <TableCell>{commission.bookingId}</TableCell>
+                  <TableCell>{commission.booking}</TableCell>
                   <TableCell>{commission.amount}</TableCell>
-                  <TableCell>{new Date(commission.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{commission.date}</TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
@@ -261,11 +233,17 @@ const CommissionsPage = () => {
                         </DropdownMenuItem>
                         {commission.status === "pending" && (
                           <>
-                            <DropdownMenuItem className="text-green-600">
+                            <DropdownMenuItem 
+                              className="text-green-600"
+                              onClick={() => handleStatusChange(commission.id, "paid")}
+                            >
                               <CheckCircle2 className="mr-2 h-4 w-4" />
                               <span>Approve</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => handleStatusChange(commission.id, "rejected")}
+                            >
                               <XCircle className="mr-2 h-4 w-4" />
                               <span>Reject</span>
                             </DropdownMenuItem>

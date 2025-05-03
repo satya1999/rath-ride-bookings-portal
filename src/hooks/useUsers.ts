@@ -13,24 +13,6 @@ export interface User {
   joined: string;
 }
 
-// Define types for the data returned from the API
-interface UserProfile {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone: string | null;
-  created_at: string;
-  updated_at: string;
-  user_roles?: UserRole[];
-}
-
-interface UserRole {
-  id: string;
-  user_id: string;
-  role: string;
-  created_at: string;
-}
-
 export function useUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,12 +24,10 @@ export function useUsers() {
       
       // Format the data for display
       const formattedUsers = data.map(user => {
-        // Extract the role from user_roles array if it exists
+        // Determine the user role from the user_roles array
         const userRole = user.user_roles && user.user_roles.length > 0 ? 
           user.user_roles[0].role : "user";
         
-        // Since we don't have a status field in the database yet,
-        // we'll default to "active" for all users
         return {
           id: user.id,
           first_name: user.first_name || "",
