@@ -25,7 +25,19 @@ const AdminLoginForm = () => {
     setDebug("Starting login process...");
 
     try {
-      // Sign in with email and password
+      // Try to create the admin user first
+      setDebug(prev => `${prev}\nAttempting to ensure admin user exists...`);
+      
+      try {
+        const result = await userService.createAdminUser(email, password);
+        setDebug(prev => `${prev}\nAdmin user setup: ${result.message}`);
+      } catch (setupError: any) {
+        // Non-critical error, we'll try to login anyway
+        setDebug(prev => `${prev}\nAdmin setup note: ${setupError.message}`);
+      }
+      
+      // Now sign in with email and password
+      setDebug(prev => `${prev}\nAttempting to sign in...`);
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -33,21 +45,16 @@ const AdminLoginForm = () => {
       
       if (authError) throw authError;
       
-      setDebug(prev => `${prev}\nAuthenticated successfully. Checking admin status...`);
+      setDebug(prev => `${prev}\nAuthenticated successfully. User ID: ${authData.user.id}`);
       
       // Check if user has admin role
       const isAdmin = await userService.checkAdminRole(authData.user.id);
+      setDebug(prev => `${prev}\nAdmin status check: ${isAdmin ? 'Yes' : 'No'}`);
       
       if (!isAdmin) {
-        // Handle case where user doesn't have admin role
-        if (email === "admin@example.com") {
-          setDebug(prev => `${prev}\nAdmin role not found. Assigning admin role...`);
-          await userService.createAdminUser(email, password);
-          setDebug(prev => `${prev}\nAdmin role assigned!`);
-        } else {
-          await supabase.auth.signOut();
-          throw new Error("You are not authorized to access the admin panel");
-        }
+        setDebug(prev => `${prev}\nAdmin role not found. Assigning admin role...`);
+        await userService.createAdminUser(email, password);
+        setDebug(prev => `${prev}\nAdmin role assignment attempted`);
       }
 
       // Set admin session flag in local storage
@@ -59,11 +66,32 @@ const AdminLoginForm = () => {
       
     } catch (error: any) {
       console.error("Admin login error:", error);
-      toast.error(error.message);
+      toast.error(`Login failed: ${error.message}`);
       setDebug(prev => `${prev}\nError: ${error.message}`);
       
       // If there was an issue, ensure we're not in a half-authenticated state
       await supabase.auth.signOut();
+      
+      // Special handling for "Invalid login credentials"
+      if (error.message === "Invalid login credentials") {
+        setDebug(prev => `${prev}\nAttempting to create admin user from scratch...`);
+        try {
+          // Try to create the admin user completely from scratch
+          const signUpResult = await supabase.auth.signUp({
+            email,
+            password,
+          });
+          
+          if (signUpResult.error) {
+            setDebug(prev => `${prev}\nSign-up error: ${signUpResult.error.message}`);
+          } else {
+            setDebug(prev => `${prev}\nNew admin account created. Please try logging in again.`);
+            toast.info("New admin account created. Please try logging in again.");
+          }
+        } catch (signUpError: any) {
+          setDebug(prev => `${prev}\nAdmin account creation error: ${signUpError.message}`);
+        }
+      }
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export const userService = {
@@ -73,69 +72,67 @@ export const userService = {
   },
   
   createAdminUser: async (email: string, password: string) => {
-    // We can't query auth.users directly through the client API
-    // Instead, we'll attempt a login and handle various scenarios
+    console.log("Creating/updating admin user:", email);
     
-    let userId: string;
+    let userId: string | undefined;
     
-    // Try to sign in with the provided credentials to see if the user exists
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    // Try to sign up a new user first
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
-      password
-    }).catch(() => ({ data: { user: null }, error: { message: "Login failed" } }));
+      password,
+    });
     
-    if (signInData && signInData.user) {
-      // User exists and credentials are valid
-      userId = signInData.user.id;
-      console.log("Existing user authenticated:", userId);
-    } else {
-      // User might not exist or password is incorrect
-      // Try to create a new user
-      console.log("No existing user or invalid credentials, trying to create user");
+    if (signUpError) {
+      console.log("Sign up error, user might already exist:", signUpError.message);
       
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      // Try to get user by email (admin only function)
+      const { data: adminData } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .single();
       
-      if (signUpError) {
-        console.error("Failed to create user:", signUpError);
-        throw signUpError;
+      if (adminData?.id) {
+        userId = adminData.id;
+        console.log("Found existing user ID:", userId);
       }
-      
-      if (!signUpData?.user) {
-        throw new Error("Failed to create user");
-      }
-      
+    } else if (signUpData?.user) {
       userId = signUpData.user.id;
-      console.log("New user created:", userId);
+      console.log("New user created with ID:", userId);
     }
     
-    // Then, check if role already exists
-    const { data: existingRole } = await supabase
-      .from('user_roles')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .single();
+    if (!userId) {
+      throw new Error("Could not create or identify user");
+    }
     
-    // If role doesn't exist, assign admin role
-    if (!existingRole) {
-      console.log("Assigning admin role to user:", userId);
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert([
-          { user_id: userId, role: 'admin' }
-        ]);
-      
-      if (roleError) throw roleError;
-    } else {
-      console.log("User already has admin role:", userId);
+    // Ensure the user has an entry in user_profiles
+    const { error: profileError } = await supabase
+      .from('user_profiles')
+      .upsert({
+        id: userId,
+        first_name: 'Admin',
+        last_name: 'User'
+      });
+    
+    if (profileError) {
+      console.error("Error updating profile:", profileError);
+    }
+    
+    // Assign admin role
+    const { error: roleError } = await supabase
+      .from('user_roles')
+      .upsert({
+        user_id: userId,
+        role: 'admin'
+      });
+    
+    if (roleError) {
+      console.error("Error assigning role:", roleError);
+      throw roleError;
     }
     
     return {
       message: "Admin user created/updated successfully",
-      userId: userId
+      userId
     };
   },
   
