@@ -22,33 +22,9 @@ const AdminLoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setDebug("");
+    setDebug("Starting login process...");
 
     try {
-      // First, check if it's a first-time setup for admin@example.com
-      if (email === "admin@example.com") {
-        setDebug("Checking if admin exists...");
-        const { hasAdmin, error: checkError } = await userService.ensureAdminExists();
-        
-        if (checkError) {
-          setDebug(prev => `${prev}\nError checking admin existence: ${checkError.message}`);
-        } else if (!hasAdmin) {
-          // This is first-time setup - create the admin user
-          setDebug(prev => `${prev}\nNo admin users found. Creating first admin...`);
-          
-          try {
-            await userService.createAdminUser(email, password);
-            setDebug(prev => `${prev}\nAdmin user created successfully! Attempting login...`);
-          } catch (setupError: any) {
-            console.error("Admin setup error:", setupError);
-            setDebug(prev => `${prev}\nSetup error: ${setupError.message}`);
-            // Continue with login attempt even if setup fails
-          }
-        } else {
-          setDebug(prev => `${prev}\nAdmin exists. Proceeding with login...`);
-        }
-      }
-
       // Sign in with email and password
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -56,53 +32,38 @@ const AdminLoginForm = () => {
       });
       
       if (authError) throw authError;
-
-      // Debug info
-      setDebug(prev => `${prev}\nUser authenticated. User ID: ${authData.user.id}`);
-      console.log("Authenticated user:", authData.user);
       
-      // Check if user has admin role using the service
+      setDebug(prev => `${prev}\nAuthenticated successfully. Checking admin status...`);
+      
+      // Check if user has admin role
       const isAdmin = await userService.checkAdminRole(authData.user.id);
-      console.log("Admin role check result:", isAdmin);
       
       if (!isAdmin) {
-        // If no admin role found but we're using admin@example.com, try to assign admin role
+        // Handle case where user doesn't have admin role
         if (email === "admin@example.com") {
-          setDebug(prev => `${prev}\nNo admin role found. Attempting to assign admin role...`);
+          setDebug(prev => `${prev}\nAdmin role not found. Assigning admin role...`);
           await userService.createAdminUser(email, password);
-          
-          // Verify the role was added
-          const roleVerified = await userService.checkAdminRole(authData.user.id);
-          
-          if (!roleVerified) {
-            await supabase.auth.signOut();
-            setDebug(prev => `${prev}\nFailed to assign admin role.`);
-            throw new Error("Failed to assign admin role");
-          }
-          
-          setDebug(prev => `${prev}\nAdmin role assigned successfully!`);
+          setDebug(prev => `${prev}\nAdmin role assigned!`);
         } else {
-          // For non-default admin emails, reject if no admin role
           await supabase.auth.signOut();
-          setDebug(prev => `${prev}\nNo admin role found for this user.`);
           throw new Error("You are not authorized to access the admin panel");
         }
       }
 
-      setDebug(prev => `${prev}\nAdmin role confirmed!`);
-      toast.success("Admin login successful");
-      
-      // Set admin session flag in local storage to help distinguish admin logins
+      // Set admin session flag in local storage
       localStorage.setItem("isAdminSession", "true");
       
-      // Force a small delay to ensure local storage is set before navigation
-      setTimeout(() => {
-        navigate("/admin");
-      }, 100);
+      toast.success("Admin login successful");
+      setDebug(prev => `${prev}\nRedirecting to admin panel...`);
+      navigate("/admin");
+      
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast.error(error.message);
       setDebug(prev => `${prev}\nError: ${error.message}`);
+      
+      // If there was an issue, ensure we're not in a half-authenticated state
+      await supabase.auth.signOut();
     } finally {
       setIsLoading(false);
     }
