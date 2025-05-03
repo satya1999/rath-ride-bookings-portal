@@ -10,23 +10,37 @@ import DashboardContainer from "@/components/dashboard/DashboardContainer";
 
 const DashboardPage = () => {
   const { toast } = useToast();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { bookings, loading: bookingsLoading } = useBookings();
   
   const dashboardData = useDashboardData(bookings);
   
   useEffect(() => {
-    // Redirect to login if not authenticated
-    if (!isLoading && !user) {
+    // If still loading, do nothing
+    if (isLoading) return;
+
+    // If not authenticated at all
+    if (!user) {
       toast({
         title: "Authentication required",
         description: "Please login to access the dashboard.",
         variant: "destructive"
       });
       navigate("/login");
+      return;
     }
-  }, [user, isLoading, navigate, toast]);
+
+    // If user is an admin and trying to access agent dashboard
+    if (user && isAdmin && localStorage.getItem("isAdminSession") === "true") {
+      toast({
+        title: "Admin detected",
+        description: "Redirecting to admin panel.",
+      });
+      navigate("/admin");
+      return;
+    }
+  }, [user, isLoading, isAdmin, navigate, toast]);
 
   // Don't render the dashboard if not authenticated or still loading
   if (isLoading || !user) {

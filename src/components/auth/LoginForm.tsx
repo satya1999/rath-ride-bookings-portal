@@ -32,6 +32,9 @@ const LoginForm = () => {
       
       if (error) throw error;
       
+      // Clear any admin session flag that might be present
+      localStorage.removeItem("isAdminSession");
+      
       // Redirect to dashboard - added automatic redirection here
       navigate("/dashboard");
       toast({

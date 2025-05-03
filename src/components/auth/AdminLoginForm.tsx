@@ -89,6 +89,10 @@ const AdminLoginForm = () => {
 
       setDebug(prev => `${prev}\nAdmin role confirmed!`);
       toast.success("Admin login successful");
+      
+      // Set admin session flag in local storage to help distinguish admin logins
+      localStorage.setItem("isAdminSession", "true");
+      
       navigate("/admin");
     } catch (error: any) {
       console.error("Admin login error:", error);

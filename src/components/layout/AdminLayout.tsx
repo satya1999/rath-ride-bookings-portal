@@ -1,3 +1,4 @@
+
 import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -33,31 +34,50 @@ interface AdminLayoutProps {
 }
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
-  const { user, isLoading, signOut } = useAuth();
+  const { user, isLoading, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    // If still loading, do nothing
+    if (isLoading) return;
+
+    // If not authenticated at all
+    if (!user) {
       toast({
         title: "Authentication required",
         description: "Please login to access the admin panel.",
         variant: "destructive"
       });
-      navigate("/login");
+      navigate("/admin-login");
+      return;
     }
-  }, [user, isLoading, navigate, toast]);
+
+    // If authenticated but not an admin
+    if (user && !isAdmin) {
+      toast({
+        title: "Access denied",
+        description: "You don't have permission to access the admin panel.",
+        variant: "destructive"
+      });
+      // Mark this as a regular session
+      localStorage.removeItem("isAdminSession");
+      navigate("/dashboard");
+      return;
+    }
+  }, [user, isLoading, isAdmin, navigate, toast]);
 
   const handleSignOut = async () => {
+    localStorage.removeItem("isAdminSession");
     await signOut();
-    navigate("/login");
+    navigate("/admin-login");
   };
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
-  if (!user) {
+  if (!user || !isAdmin) {
     return null;
   }
 
