@@ -25,38 +25,41 @@ const AdminLoginForm = () => {
     setDebug("Starting login process...");
 
     try {
-      // Try to create the admin user first
-      setDebug(prev => `${prev}\nAttempting to ensure admin user exists...`);
+      // Try direct login first - much faster
+      setDebug(prev => `${prev}\nAttempting to sign in directly...`);
       
-      try {
-        const result = await userService.createAdminUser(email, password);
-        setDebug(prev => `${prev}\nAdmin user setup: ${result.message}`);
-      } catch (setupError: any) {
-        // Non-critical error, we'll try to login anyway
-        setDebug(prev => `${prev}\nAdmin setup note: ${setupError.message}`);
-      }
-      
-      // Now sign in with email and password
-      setDebug(prev => `${prev}\nAttempting to sign in...`);
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
-      if (authError) throw authError;
-      
-      setDebug(prev => `${prev}\nAuthenticated successfully. User ID: ${authData.user.id}`);
-      
-      // Check if user has admin role
-      const isAdmin = await userService.checkAdminRole(authData.user.id);
-      setDebug(prev => `${prev}\nAdmin status check: ${isAdmin ? 'Yes' : 'No'}`);
-      
-      if (!isAdmin) {
-        setDebug(prev => `${prev}\nAdmin role not found. Assigning admin role...`);
-        await userService.createAdminUser(email, password);
-        setDebug(prev => `${prev}\nAdmin role assignment attempted`);
+      if (authError) {
+        // Only if direct login fails, try to create the admin user
+        setDebug(prev => `${prev}\nLogin failed: ${authError.message}`);
+        setDebug(prev => `${prev}\nAttempting to ensure admin user exists...`);
+        
+        try {
+          const result = await userService.createAdminUser(email, password);
+          setDebug(prev => `${prev}\nAdmin user setup: ${result.message}`);
+          
+          // Try login again
+          const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
+          
+          if (retryError) throw retryError;
+          
+          setDebug(prev => `${prev}\nAuthenticated successfully after retry.`);
+          authData = retryData;
+        } catch (setupError: any) {
+          setDebug(prev => `${prev}\nAdmin setup error: ${setupError.message}`);
+          throw authError; // Throw the original error
+        }
+      } else {
+        setDebug(prev => `${prev}\nAuthenticated successfully on first attempt!`);
       }
-
+      
       // Set admin session flag in local storage
       localStorage.setItem("isAdminSession", "true");
       
@@ -77,17 +80,9 @@ const AdminLoginForm = () => {
         setDebug(prev => `${prev}\nAttempting to create admin user from scratch...`);
         try {
           // Try to create the admin user completely from scratch
-          const signUpResult = await supabase.auth.signUp({
-            email,
-            password,
-          });
-          
-          if (signUpResult.error) {
-            setDebug(prev => `${prev}\nSign-up error: ${signUpResult.error.message}`);
-          } else {
-            setDebug(prev => `${prev}\nNew admin account created. Please try logging in again.`);
-            toast.info("New admin account created. Please try logging in again.");
-          }
+          const result = await userService.createAdminUser(email, password);
+          setDebug(prev => `${prev}\nAdmin creation response: ${JSON.stringify(result)}`);
+          toast.info("Admin account created. Please try logging in again.");
         } catch (signUpError: any) {
           setDebug(prev => `${prev}\nAdmin account creation error: ${signUpError.message}`);
         }

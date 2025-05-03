@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export const userService = {
@@ -55,85 +56,139 @@ export const userService = {
   },
   
   checkAdminRole: async (userId: string) => {
-    // Check if the user has admin role
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .single();
-    
-    if (error && error.code !== 'PGRST116') {
-      console.error("Admin check error:", error);
-      throw error;
+    try {
+      // Check if the user has admin role
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error("Admin check error:", error);
+        throw error;
+      }
+      
+      return !!data;
+    } catch (err) {
+      console.error("Error checking admin role:", err);
+      return false;
     }
-    
-    return !!data;
   },
   
   createAdminUser: async (email: string, password: string) => {
     console.log("Creating/updating admin user:", email);
     
-    let userId: string | undefined;
-    
-    // Try to sign up a new user first
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    
-    if (signUpError) {
-      console.log("Sign up error, user might already exist:", signUpError.message);
-      
-      // Try to get user by email (admin only function)
-      const { data: adminData } = await supabase
+    try {
+      // First, check if the user already exists
+      const { data: existingUser, error: checkError } = await supabase
         .from('user_profiles')
         .select('id')
-        .single();
-      
-      if (adminData?.id) {
-        userId = adminData.id;
-        console.log("Found existing user ID:", userId);
+        .limit(1);
+        
+      if (checkError) {
+        console.error("Error checking existing user:", checkError);
       }
-    } else if (signUpData?.user) {
-      userId = signUpData.user.id;
-      console.log("New user created with ID:", userId);
+      
+      let userId: string | undefined;
+      
+      // If no existing user found, try to sign up a new one
+      if (!existingUser?.length) {
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        
+        if (signUpError) {
+          console.log("Sign up error:", signUpError.message);
+          
+          // Try to get user by email (admin only function)
+          const { data: adminData } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .single();
+          
+          if (adminData?.id) {
+            userId = adminData.id;
+            console.log("Found existing user ID:", userId);
+          } else {
+            // Try signing in to get the user ID
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+              email,
+              password
+            });
+            
+            if (signInError) {
+              console.error("Could not sign in:", signInError);
+            } else if (signInData?.user) {
+              userId = signInData.user.id;
+              console.log("Retrieved user ID through sign-in:", userId);
+              // Sign out immediately to avoid session conflicts
+              await supabase.auth.signOut();
+            }
+          }
+        } else if (signUpData?.user) {
+          userId = signUpData.user.id;
+          console.log("New user created with ID:", userId);
+        }
+      } else {
+        userId = existingUser[0]?.id;
+        console.log("Using existing user with ID:", userId);
+      }
+      
+      if (!userId) {
+        // One final attempt - create a user directly
+        const { data: finalSignUpData, error: finalSignUpError } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true
+        });
+        
+        if (finalSignUpError) {
+          throw new Error(`Could not create or identify user: ${finalSignUpError.message}`);
+        }
+        
+        userId = finalSignUpData?.user?.id;
+        if (!userId) {
+          throw new Error("Could not create or identify user after multiple attempts");
+        }
+      }
+      
+      // Ensure the user has an entry in user_profiles
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: userId,
+          first_name: 'Admin',
+          last_name: 'User'
+        });
+      
+      if (profileError) {
+        console.error("Error updating profile:", profileError);
+      }
+      
+      // Assign admin role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .upsert({
+          user_id: userId,
+          role: 'admin'
+        });
+      
+      if (roleError) {
+        console.error("Error assigning role:", roleError);
+        throw roleError;
+      }
+      
+      return {
+        message: "Admin user created/updated successfully",
+        userId
+      };
+    } catch (error: any) {
+      console.error("Error in createAdminUser:", error);
+      throw error;
     }
-    
-    if (!userId) {
-      throw new Error("Could not create or identify user");
-    }
-    
-    // Ensure the user has an entry in user_profiles
-    const { error: profileError } = await supabase
-      .from('user_profiles')
-      .upsert({
-        id: userId,
-        first_name: 'Admin',
-        last_name: 'User'
-      });
-    
-    if (profileError) {
-      console.error("Error updating profile:", profileError);
-    }
-    
-    // Assign admin role
-    const { error: roleError } = await supabase
-      .from('user_roles')
-      .upsert({
-        user_id: userId,
-        role: 'admin'
-      });
-    
-    if (roleError) {
-      console.error("Error assigning role:", roleError);
-      throw roleError;
-    }
-    
-    return {
-      message: "Admin user created/updated successfully",
-      userId
-    };
   },
   
   ensureAdminExists: async () => {
