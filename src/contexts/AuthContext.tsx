@@ -11,7 +11,7 @@ type AuthContextType = {
   session: Session | null;
   isLoading: boolean;
   isAdmin: boolean;
-  signIn: (email: string, redirectTo?: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string, redirectTo?: string, userData?: any) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -47,88 +47,112 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state changed:", event, session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
         
-        if (event === 'SIGNED_IN' && session?.user) {
+        if (session) {
+          console.log("Session found in auth state change:", session.user.email);
+          setSession(session);
+          setUser(session.user);
+          
           // Check if user has admin role
-          const isAdminUser = await checkAdminRole(session.user.id);
-          console.log("Is admin user:", isAdminUser);
-          
-          // Check if the login originated from admin login page
-          const isAdminSession = localStorage.getItem("isAdminSession") === "true";
-          console.log("Is admin session:", isAdminSession);
-          
-          if (isAdminUser && isAdminSession) {
-            console.log("Redirecting to admin dashboard");
-            toast.success("Admin login successful!");
-            navigate("/admin");
-          } else if (!isAdminSession) {
-            console.log("Redirecting to agent dashboard");
-            toast.success("Logged in successfully!");
-            navigate("/dashboard");
+          if (session.user) {
+            const isAdminUser = await checkAdminRole(session.user.id);
+            
+            // Check if the login originated from admin login page
+            const isAdminSession = localStorage.getItem("isAdminSession") === "true";
+            console.log("Is admin session:", isAdminSession);
+            
+            if (isAdminUser && isAdminSession && event === 'SIGNED_IN') {
+              console.log("Admin logged in, redirecting to admin dashboard");
+              toast.success("Admin login successful!");
+              navigate("/admin");
+            } else if (!isAdminSession && event === 'SIGNED_IN') {
+              console.log("Agent logged in, redirecting to dashboard");
+              toast.success("Logged in successfully!");
+              navigate("/dashboard");
+            }
           }
-        } else if (event === 'SIGNED_OUT') {
-          localStorage.removeItem("isAdminSession");
+        } else {
+          console.log("No session in auth state change");
+          setSession(null);
+          setUser(null);
           setIsAdmin(false);
-          toast.info("Logged out successfully!");
-          navigate("/");
+          
+          if (event === 'SIGNED_OUT') {
+            localStorage.removeItem("isAdminSession");
+            toast.info("Logged out successfully!");
+            navigate("/");
+          }
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log("Initial session check:", session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        // Check if user has admin role
-        const isAdminUser = await checkAdminRole(session.user.id);
-        console.log("Initial admin check result:", isAdminUser);
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Initial session check:", session?.user?.email);
         
-        // Check if we're on login page and should redirect
-        const isAdminSession = localStorage.getItem("isAdminSession") === "true";
-        console.log("Is stored admin session:", isAdminSession);
-        
-        if (location.pathname === '/login' && !isAdminSession) {
-          navigate("/dashboard");
-        } else if (location.pathname === '/admin-login' && isAdminUser && isAdminSession) {
-          navigate("/admin");
-        } else if (location.pathname.startsWith('/admin') && !isAdminUser) {
-          // Redirect non-admin users away from admin pages
-          toast.error("You don't have permission to access the admin panel");
-          navigate("/dashboard");
-        } else if (location.pathname.startsWith('/admin') && isAdminUser && !isAdminSession) {
-          // Update the session flag if user is admin but the flag isn't set
-          localStorage.setItem("isAdminSession", "true");
+        if (session) {
+          setSession(session);
+          setUser(session.user);
+          
+          if (session.user) {
+            // Check if user has admin role
+            const isAdminUser = await checkAdminRole(session.user.id);
+            console.log("Initial admin check result:", isAdminUser);
+            
+            // Check if we're on login page and should redirect
+            const isAdminSession = localStorage.getItem("isAdminSession") === "true";
+            console.log("Is stored admin session:", isAdminSession);
+            
+            if (location.pathname === '/login' && !isAdminSession) {
+              navigate("/dashboard");
+            } else if (location.pathname === '/admin-login' && isAdminUser && isAdminSession) {
+              navigate("/admin");
+            } else if (location.pathname.startsWith('/admin') && !isAdminUser) {
+              // Redirect non-admin users away from admin pages
+              toast.error("You don't have permission to access the admin panel");
+              navigate("/dashboard");
+            } else if (location.pathname.startsWith('/admin') && isAdminUser && !isAdminSession) {
+              // Update the session flag if user is admin but the flag isn't set
+              localStorage.setItem("isAdminSession", "true");
+            }
+          }
         }
+      } catch (error) {
+        console.error("Error checking session:", error);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
-    });
+    };
+    
+    checkSession();
 
     return () => {
       subscription.unsubscribe();
     };
   }, [navigate, location.pathname]);
 
-  const signIn = async (email: string, redirectTo?: string) => {
+  const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithOtp({ 
+      console.log("Attempting to sign in:", email);
+      const { data, error } = await supabase.auth.signInWithPassword({ 
         email,
-        options: {
-          emailRedirectTo: redirectTo || window.location.origin
-        }
+        password
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Login error:", error.message);
+        toast.error(`Login failed: ${error.message}`);
+        return { success: false, error: error.message };
+      }
       
-      toast.success("OTP sent to your email!");
+      console.log("Sign in successful:", data.user?.email);
+      return { success: true };
     } catch (error: any) {
+      console.error("Login exception:", error);
       toast.error(`Login failed: ${error.message}`);
-      throw error;
+      return { success: false, error: error.message };
     }
   };
 
@@ -156,6 +180,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       localStorage.removeItem("isAdminSession");
       await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
       navigate("/");
     } catch (error: any) {
       toast.error(`Logout failed: ${error.message}`);

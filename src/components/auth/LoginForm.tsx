@@ -6,17 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("agent@example.com");
+  const [password, setPassword] = useState("agent123");
   const [activeTab, setActiveTab] = useState<string>("email");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,36 +22,23 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      // Use password-based authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (error) throw error;
-      
-      console.log("Login successful:", data);
-      
       // Clear any admin session flag that might be present
       localStorage.removeItem("isAdminSession");
       
-      // Redirect to dashboard - added automatic redirection here
-      toast({
-        title: "Login successful",
-        description: "Welcome to your agent dashboard",
-      });
+      // Use password-based authentication through our context
+      const { success, error } = await signIn(email, password);
       
-      // Small delay to ensure state updates before navigation
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 100);
+      if (!success) {
+        throw new Error(error || "Login failed");
+      }
+      
+      console.log("Login successful");
+      
+      // Redirect will happen automatically through the auth context
+      toast.success("Login successful!");
     } catch (error: any) {
       console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(`Login failed: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +49,10 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      await signIn(email);
-      navigate("/verify-otp");
+      // This functionality is currently disabled
+      toast.info("Magic link login is currently disabled");
+      // await signIn(email);
+      // navigate("/verify-otp");
     } catch (error) {
       console.error("Login error:", error);
     } finally {
@@ -90,6 +77,16 @@ const LoginForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-6 bg-muted/50 p-4 rounded-lg">
+          <div className="text-sm">
+            <strong>Demo Agent Credentials</strong>
+            <div className="mt-1 font-mono text-xs bg-background p-2 rounded border">
+              Email: agent@example.com<br />
+              Password: agent123
+            </div>
+          </div>
+        </div>
+      
         <Tabs defaultValue="email" className="w-full" onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="email">Email & Password</TabsTrigger>
@@ -103,7 +100,7 @@ const LoginForm = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="john@example.com"
+                  placeholder="agent@example.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -135,7 +132,7 @@ const LoginForm = () => {
                 <Input
                   id="email-magic"
                   type="email"
-                  placeholder="john@example.com"
+                  placeholder="agent@example.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -171,7 +168,7 @@ const LoginForm = () => {
           Don't have an account?{" "}
           <button
             onClick={handleRegister}
-            className="text-rath-red hover:underline font-medium"
+            className="text-primary hover:underline font-medium"
             type="button"
           >
             Register

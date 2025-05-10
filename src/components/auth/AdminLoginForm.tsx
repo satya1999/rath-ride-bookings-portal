@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { ShieldCheck, Info } from "lucide-react";
 import { userService } from "@/services";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AdminLoginForm = () => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("admin@example.com");
   const [password, setPassword] = useState("admin123");
@@ -21,55 +22,53 @@ const AdminLoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setDebug("Starting login process...");
+    setDebug("Starting admin login process...");
 
     try {
-      // First, try to create/ensure admin user exists
-      setDebug(prev => `${prev}\nAttempting to ensure admin user exists...`);
+      // First attempt to ensure admin user exists
+      setDebug(prev => `${prev}\nEnsuring admin user exists...`);
       
       try {
         const result = await userService.createAdminUser(email, password);
-        setDebug(prev => `${prev}\nAdmin user setup: ${result.message}`);
+        setDebug(prev => `${prev}\nAdmin setup: ${result.message}`);
       } catch (setupError: any) {
-        setDebug(prev => `${prev}\nAdmin setup error: ${setupError.message}`);
-        // Continue with login attempt even if setup fails
+        setDebug(prev => `${prev}\nAdmin setup warning: ${setupError.message}`);
+        // Continue with login attempt even if setup has issues
       }
       
-      // Now try to login with the credentials
+      // Now log in with the credentials
       setDebug(prev => `${prev}\nAttempting to sign in...`);
-      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { success, error } = await signIn(email, password);
       
-      if (loginError) {
-        setDebug(prev => `${prev}\nLogin failed: ${loginError.message}`);
-        throw loginError;
+      if (!success) {
+        setDebug(prev => `${prev}\nLogin failed: ${error}`);
+        throw new Error(error || "Login failed");
       }
       
-      // Wait a bit to make sure roles are assigned
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setDebug(prev => `${prev}\nLogin successful! Setting admin session flag...`);
       
-      // Verify the user has admin role
+      // Set admin session flag
+      localStorage.setItem("isAdminSession", "true");
+      
+      // Verify admin role
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) {
+        throw new Error("Failed to retrieve user data after login");
+      }
+      
       setDebug(prev => `${prev}\nVerifying admin role...`);
-      const isAdmin = await userService.checkAdminRole(loginData.user.id);
+      const isAdmin = await userService.checkAdminRole(user.id);
       
       if (!isAdmin) {
         setDebug(prev => `${prev}\nUser does not have admin role. Attempting to assign it...`);
         try {
-          await supabase.from('user_roles').upsert({
-            user_id: loginData.user.id,
-            role: 'admin'
-          });
+          await userService.createAdminUser(email, password);
+          setDebug(prev => `${prev}\nAdmin role assigned.`);
         } catch (roleError: any) {
           setDebug(prev => `${prev}\nError assigning admin role: ${roleError.message}`);
+          throw new Error("Failed to assign admin role");
         }
       }
-      
-      setDebug(prev => `${prev}\nAuthenticated successfully!`);
-      
-      // Set admin session flag in local storage
-      localStorage.setItem("isAdminSession", "true");
       
       toast.success("Admin login successful");
       setDebug(prev => `${prev}\nRedirecting to admin panel...`);
@@ -78,30 +77,12 @@ const AdminLoginForm = () => {
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast.error(`Login failed: ${error.message}`);
-      setDebug(prev => `${prev}\nError: ${error.message}`);
       
       // If there was an issue, ensure we're not in a half-authenticated state
       await supabase.auth.signOut();
+      localStorage.removeItem("isAdminSession");
       
-      // Special handling for "Invalid login credentials"
-      if (error.message === "Invalid login credentials") {
-        setDebug(prev => `${prev}\nAttempting one more admin creation try...`);
-        try {
-          // Try to create the admin user with a different approach
-          const { data } = await supabase.auth.admin.createUser({
-            email,
-            password,
-            email_confirm: true
-          });
-          
-          if (data?.user) {
-            setDebug(prev => `${prev}\nAdmin account created via admin API. Try logging in again.`);
-            toast.info("Admin account created. Please try logging in again.");
-          }
-        } catch (signUpError: any) {
-          setDebug(prev => `${prev}\nAdmin account creation error: ${signUpError.message}`);
-        }
-      }
+      setDebug(prev => `${prev}\nError: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
