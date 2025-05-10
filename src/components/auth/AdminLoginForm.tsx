@@ -10,6 +10,7 @@ import { ShieldCheck, Info } from "lucide-react";
 import { userService } from "@/services";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminLoginForm = () => {
   const navigate = useNavigate();
