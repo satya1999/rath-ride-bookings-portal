@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SeatLegend from "./SeatLegend";
 import LowerDeckSeats from "./LowerDeckSeats";
 import UpperDeckBerths from "./UpperDeckBerths";
+import Seater2x2Layout from "./Seater2x2Layout";
+import Sleeper2x2Layout from "./Sleeper2x2Layout";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SeatLayoutData {
@@ -14,6 +16,8 @@ interface SeatLayoutData {
   unavailableSeats: string[];
   sleeperBerths?: number;
   upperDeck?: boolean;
+  layout?: string;
+  type?: string;
 }
 
 interface SeatSelectionContentProps {
@@ -23,6 +27,7 @@ interface SeatSelectionContentProps {
   handleSeatClick: (seatId: string, isBooked: boolean) => void;
   handleProceedToPassengerDetails: () => void;
   onSaveLayout?: () => void;
+  layoutType?: string;
 }
 
 type DeckType = "lower" | "upper";
@@ -33,10 +38,45 @@ const SeatSelectionContent = ({
   upperDeckBerths,
   handleSeatClick,
   handleProceedToPassengerDetails,
-  onSaveLayout
+  onSaveLayout,
+  layoutType = "1x2" // Default to 1x2 if not specified
 }: SeatSelectionContentProps) => {
   const [activeDeck, setActiveDeck] = React.useState<DeckType>("lower");
   const isMobile = useIsMobile();
+  
+  const renderLowerDeckLayout = () => {
+    if (layoutType === "2x2") {
+      return (
+        <Seater2x2Layout 
+          seats={lowerDeckSeats.map(row => row.filter(seat => seat !== null) as ({ id: string; booked: boolean; selected: boolean })[])} 
+          onSeatClick={handleSeatClick} 
+        />
+      );
+    }
+    
+    // Default to 1x2 layout
+    return <LowerDeckSeats seats={lowerDeckSeats} onSeatClick={handleSeatClick} />;
+  };
+  
+  const renderUpperDeckLayout = () => {
+    if (layoutType === "2x2") {
+      return (
+        <Sleeper2x2Layout 
+          berths={upperDeckBerths} 
+          onBerthClick={handleSeatClick} 
+        />
+      );
+    }
+    
+    // Default to 1x2 layout
+    return (
+      <UpperDeckBerths 
+        berths={upperDeckBerths} 
+        onBerthClick={handleSeatClick} 
+        onSaveLayout={onSaveLayout} 
+      />
+    );
+  };
 
   return (
     <>
@@ -49,16 +89,20 @@ const SeatSelectionContent = ({
       
       <Tabs value={activeDeck} onValueChange={(value) => setActiveDeck(value as DeckType)} className="w-full mb-6">
         <TabsList className={`grid ${isMobile ? "w-full" : "w-[400px]"} grid-cols-2 mx-auto`}>
-          <TabsTrigger value="lower" className="text-xs sm:text-sm">Lower Deck (1×2)</TabsTrigger>
-          <TabsTrigger value="upper" className="text-xs sm:text-sm">Upper Deck (Sleeper)</TabsTrigger>
+          <TabsTrigger value="lower" className="text-xs sm:text-sm">
+            Lower Deck ({layoutType === "2x2" ? "2×2" : "1×2"})
+          </TabsTrigger>
+          <TabsTrigger value="upper" className="text-xs sm:text-sm">
+            Upper Deck ({layoutType === "2x2" ? "2×2 Sleeper" : "Sleeper"})
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="lower">
-          <LowerDeckSeats seats={lowerDeckSeats} onSeatClick={handleSeatClick} />
+          {renderLowerDeckLayout()}
         </TabsContent>
         
         <TabsContent value="upper">
-          <UpperDeckBerths berths={upperDeckBerths} onBerthClick={handleSeatClick} onSaveLayout={onSaveLayout} />
+          {renderUpperDeckLayout()}
         </TabsContent>
       </Tabs>
       

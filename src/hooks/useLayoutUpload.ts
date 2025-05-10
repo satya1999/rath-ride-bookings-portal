@@ -102,14 +102,24 @@ function generateConfiguration(layoutType: string) {
       configuration = {
         upperDeck: true,
         lowerDeck: false,
-        layout: "1x2"
+        layout: "1x2",
+        type: "sleeper"
       };
       break;
     case "2x2-seater":
       configuration = {
         upperDeck: false,
         lowerDeck: true,
-        layout: "2x2"
+        layout: "2x2",
+        type: "seater"
+      };
+      break;
+    case "2x2-sleeper":
+      configuration = {
+        upperDeck: true,
+        lowerDeck: true,
+        layout: "2x2",
+        type: "sleeper"
       };
       break;
     default:

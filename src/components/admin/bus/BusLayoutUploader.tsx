@@ -62,6 +62,7 @@ export const BusLayoutUploader = ({ onLayoutAdded }: BusLayoutUploaderProps) => 
                 <SelectItem value="semi-sleeper">Semi-Sleeper</SelectItem>
                 <SelectItem value="1x2-sleeper">1X2 Sleeper</SelectItem>
                 <SelectItem value="2x2-seater">2X2 Seater</SelectItem>
+                <SelectItem value="2x2-sleeper">2X2 Sleeper</SelectItem>
               </SelectContent>
             </Select>
           </div>

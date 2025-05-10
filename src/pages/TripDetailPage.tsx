@@ -11,6 +11,7 @@ import TripSeatsTab from "@/components/trips/TripSeatsTab";
 import { Trip, createTrip } from "@/types/trip";
 import { bookingService } from "@/services";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import "@/styles/seat.css";
 
 // For the MVP, we'll use mock data
@@ -61,13 +62,15 @@ const TripDetailPage = () => {
   const [trip] = useState<Trip>(createTrip(mockTripData)); // Use our helper function
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("details");
+  const [layoutType, setLayoutType] = useState<"1x2" | "2x2">("1x2");
   const [seatLayout, setSeatLayout] = useState({
     rows: 10,
     columns: 3,
     aisle: [1], // Column indices that represent the aisle
     unavailableSeats: ["L2", "L7", "R3", "R4", "R11", "R16", "SR2", "SR8", "SL3"], // Default unavailable seats
     sleeperBerths: 15, // 5 on left side, 10 on right side
-    upperDeck: true
+    upperDeck: true,
+    layout: "1x2"
   });
   
   // Fetch booked seats for this trip
@@ -89,6 +92,17 @@ const TripDetailPage = () => {
     
     fetchBookedSeats();
   }, [trip.id]);
+
+  // Update seat layout when layout type changes
+  useEffect(() => {
+    setSeatLayout(prev => ({
+      ...prev,
+      layout: layoutType
+    }));
+    
+    // Reset selected seats when changing layout type
+    setSelectedSeats([]);
+  }, [layoutType]);
 
   return (
     <PageLayout>
@@ -132,11 +146,28 @@ const TripDetailPage = () => {
             
             {/* Seats Tab */}
             <TabsContent value="seats">
+              <div className="mb-4">
+                <div className="flex items-center justify-end mb-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">Bus Layout:</span>
+                    <Select value={layoutType} onValueChange={(value) => setLayoutType(value as "1x2" | "2x2")}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select layout" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1x2">1x2 Layout</SelectItem>
+                        <SelectItem value="2x2">2x2 Layout</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
               <TripSeatsTab
                 selectedSeats={selectedSeats}
                 setSelectedSeats={setSelectedSeats}
                 seatLayout={seatLayout}
                 trip={trip}
+                layoutType={layoutType}
               />
             </TabsContent>
           </Tabs>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
@@ -17,6 +18,8 @@ interface SeatLayoutData {
   unavailableSeats: string[];
   sleeperBerths?: number;
   upperDeck?: boolean;
+  layout?: string;
+  type?: string;
 }
 
 interface TripSeatsTabProps {
@@ -24,17 +27,25 @@ interface TripSeatsTabProps {
   setSelectedSeats: React.Dispatch<React.SetStateAction<string[]>>;
   seatLayout: SeatLayoutData;
   trip: Trip;
+  layoutType?: string;
 }
 
 type BookingStep = "selectSeats" | "passengerDetails" | "payment" | "ticket";
 
-const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: TripSeatsTabProps) => {
+const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip, layoutType = "1x2" }: TripSeatsTabProps) => {
   const { toast: useToastHook } = useToast();
   const [currentStep, setCurrentStep] = useState<BookingStep>("selectSeats");
   const [passengerData, setPassengerData] = useState<Passenger[]>([]);
   const [bookedSeats, setBookedSeats] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Set the layout type in the seat layout data
+  const updatedSeatLayout = {
+    ...seatLayout,
+    layout: layoutType,
+    type: seatLayout.upperDeck ? "sleeper" : "seater"
+  };
   
   useEffect(() => {
     const fetchBookedSeats = async () => {
@@ -44,13 +55,13 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
         const bookedSeats = await bookingService.getTripBookedSeats(trip.id);
         
         const updatedLayout = {
-          ...seatLayout,
-          unavailableSeats: [...seatLayout.unavailableSeats, ...bookedSeats]
+          ...updatedSeatLayout,
+          unavailableSeats: [...updatedSeatLayout.unavailableSeats, ...bookedSeats]
         };
         
         setBookedSeats(bookedSeats);
         
-        seatLayout.unavailableSeats = updatedLayout.unavailableSeats;
+        updatedSeatLayout.unavailableSeats = updatedLayout.unavailableSeats;
         
       } catch (error) {
         console.error("Error in fetchBookedSeats:", error);
@@ -65,7 +76,7 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
   }, [trip.id]);
   
   const { lowerDeckSeats, upperDeckBerths, handleSeatClick } = useSeatLayout(
-    seatLayout, 
+    updatedSeatLayout, 
     selectedSeats, 
     setSelectedSeats
   );
@@ -94,17 +105,18 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
 
   const handleSaveLayout = () => {
     const layoutData = {
-      name: "1X2 Bus Sleeper Layout",
-      type: "sleeper",
+      name: `${layoutType} Bus ${updatedSeatLayout.upperDeck ? "Sleeper" : "Seater"} Layout`,
+      type: updatedSeatLayout.upperDeck ? "sleeper" : "seater",
       configuration: {
         lowerDeckSeats,
-        upperDeckBerths
+        upperDeckBerths,
+        layout: layoutType
       }
     };
     
     localStorage.setItem('lastBusLayout', JSON.stringify(layoutData));
     
-    toast.success("1X2 Bus Layout saved successfully. View it in the admin panel.");
+    toast.success(`${layoutType} Bus Layout saved successfully. View it in the admin panel.`);
   };
 
   const totalAdvanceAmount = passengerData.reduce((sum, passenger) => 
@@ -157,6 +169,7 @@ const TripSeatsTab = ({ selectedSeats, setSelectedSeats, seatLayout, trip }: Tri
             handleSeatClick={handleSeatClick}
             handleProceedToPassengerDetails={handleProceedToPassengerDetails}
             onSaveLayout={handleSaveLayout}
+            layoutType={layoutType}
           />
         )}
         
