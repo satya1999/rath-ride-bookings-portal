@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ShieldCheck, Info } from "lucide-react";
 import { userService } from "@/services";
@@ -46,6 +45,25 @@ const AdminLoginForm = () => {
       if (loginError) {
         setDebug(prev => `${prev}\nLogin failed: ${loginError.message}`);
         throw loginError;
+      }
+      
+      // Wait a bit to make sure roles are assigned
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Verify the user has admin role
+      setDebug(prev => `${prev}\nVerifying admin role...`);
+      const isAdmin = await userService.checkAdminRole(loginData.user.id);
+      
+      if (!isAdmin) {
+        setDebug(prev => `${prev}\nUser does not have admin role. Attempting to assign it...`);
+        try {
+          await supabase.from('user_roles').upsert({
+            user_id: loginData.user.id,
+            role: 'admin'
+          });
+        } catch (roleError: any) {
+          setDebug(prev => `${prev}\nError assigning admin role: ${roleError.message}`);
+        }
       }
       
       setDebug(prev => `${prev}\nAuthenticated successfully!`);

@@ -3,30 +3,42 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const userService = {
   getUsers: async () => {
-    // Get users from the auth.users table via user_roles
     try {
-      // Get user roles first since this table exists in our schema
+      // Get user roles
       const { data: userRoles, error: userRolesError } = await supabase
         .from('user_roles')
         .select('*');
       
       if (userRolesError) throw userRolesError;
       
+      // Get user profiles
+      const { data: userProfiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('*');
+      
+      if (profilesError) throw profilesError;
+      
       // Extract unique user IDs from roles
       const userIds = [...new Set(userRoles.map(role => role.user_id))];
       
-      // For each user ID, get their metadata from Auth API
+      // For each user ID, combine profile and role data
       const usersData = userIds.map(userId => {
         // Find all roles for this user
         const roles = userRoles.filter(r => r.user_id === userId);
+        // Find profile for this user (if exists)
+        const profile = userProfiles.find(p => p.id === userId);
         
         return {
           id: userId,
-          first_name: "", // Default values since we don't have profiles table
-          last_name: "", 
-          created_at: roles[0]?.created_at || new Date().toISOString(),
-          updated_at: roles[0]?.created_at || new Date().toISOString(),
-          user_roles: roles
+          first_name: profile?.first_name || "", 
+          last_name: profile?.last_name || "",
+          phone: profile?.phone || "",
+          created_at: profile?.created_at || roles[0]?.created_at || new Date().toISOString(),
+          updated_at: profile?.updated_at || roles[0]?.created_at || new Date().toISOString(),
+          user_roles: roles,
+          // Determine role and status
+          role: roles.length > 0 ? roles[0].role : "user",
+          status: "active" // Default status
         };
       });
 
@@ -38,15 +50,20 @@ export const userService = {
   },
 
   updateUserStatus: async (userId: string, status: string) => {
-    // Create a separate status table entry or update user metadata instead
-    // For now, we'll just return the userId and status to simulate a successful update
-    console.log(`Updated user ${userId} status to ${status}`);
-    return [{ user_id: userId, status: status }];
+    try {
+      // Update user status in a new user_status table or metadata
+      console.log(`Updated user ${userId} status to ${status}`);
+      
+      // In a real implementation, you would update the status in the database
+      // For now, we'll just return the updated record
+      return [{ user_id: userId, status: status }];
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      throw error;
+    }
   },
 
   deleteUser: async (userId: string) => {
-    // Using a custom function call since there's no direct deleteUser API
-    // We'll need to implement this function on the Supabase side
     try {
       // Delete from user_roles first
       const { error: roleError } = await supabase
@@ -128,6 +145,9 @@ export const userService = {
         
         console.log("Retrieved user ID through sign-in:", userId);
         
+        // Ensure the user has a profile
+        await ensureUserProfile(userId, 'Admin', 'User');
+        
         // Sign out immediately to avoid session conflicts
         await supabase.auth.signOut();
         
@@ -155,6 +175,9 @@ export const userService = {
       }
       
       console.log("New admin user created with ID:", userId);
+      
+      // Ensure the user has a profile
+      await ensureUserProfile(userId, 'Admin', 'User');
       
       // Assign admin role
       const { error: roleError } = await supabase
@@ -189,3 +212,18 @@ export const userService = {
     return { hasAdmin: count && count > 0, error };
   }
 };
+
+// Helper function to ensure user profile exists
+async function ensureUserProfile(userId: string, firstName: string, lastName: string) {
+  const { error } = await supabase
+    .from('user_profiles')
+    .upsert({
+      id: userId,
+      first_name: firstName,
+      last_name: lastName
+    });
+    
+  if (error) {
+    console.error("Error ensuring user profile:", error);
+  }
+}
